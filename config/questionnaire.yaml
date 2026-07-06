@@ -1,0 +1,197 @@
+metadata:
+  questionnaire_name: "Questionario MiFID II Istituzionale RiskAlign"
+  version: "2.0"
+  pillars:
+    experience:
+      weight: 0.20
+      description: "Valuta la conoscenza e l'esperienza storica del cliente nei mercati finanziari."
+    financial_situation:
+      weight: 0.45
+      description: "Valuta la capacità oggettiva del cliente di sostenere perdite (priorità massima ESMA)."
+      enforce_capping: true
+      cap_threshold_score: 2.0
+      max_allowed_sri: 2
+    objectives_and_preferences:
+      weight: 0.35
+      description: "Valuta gli obiettivi di investimento, la tolleranza psicologica al rischio e le preferenze."
+
+questions:
+  # ============================================================================
+  # PILASTRO 1: CONOSCENZA ED ESPERIENZA (Peso: 20%)
+  # ============================================================================
+  - id: "q_exp_education"
+    pillar: "experience"
+    text: "Qual è il tuo livello di istruzione o la tua professione in ambito economico-finanziario?"
+    options:
+      - id: "a1"
+        text: "Nessuna formazione o esperienza professionale in ambito finanziario."
+        score: 1
+      - id: "a2"
+        text: "Conoscenza di base (es. letture personali, corsi introduttivi)."
+        score: 3
+      - id: "a3"
+        text: "Conoscenza avanzata (es. laurea in economia, certificazioni professionali o impiego nel settore)."
+        score: 5
+
+  - id: "q_exp_frequency"
+    pillar: "experience"
+    text: "Con quale frequenza hai effettuato operazioni su strumenti finanziari (azioni, obbligazioni, fondi) negli ultimi 3 anni?"
+    options:
+      - id: "a1"
+        text: "Mai."
+        score: 1
+      - id: "a2"
+        text: "Raramente (meno di 5 operazioni all'anno)."
+        score: 2
+      - id: "a3"
+        text: "Moderatamente (operazioni mensili o trimestrali)."
+        score: 4
+      - id: "a4"
+        text: "Frequentemente (trading attivo settimanale o giornaliero)."
+        score: 5
+
+  - id: "q_exp_derivatives"
+    pillar: "experience"
+    text: "Qual è il tuo livello di esperienza con strumenti complessi o a leva (es. Derivati, Opzioni, Criptovalute, Marginazione)?"
+    options:
+      - id: "a1"
+        text: "Non ne conosco il funzionamento e non li ho mai negoziati."
+        score: 1
+      - id: "a2"
+        text: "Ne comprendo il funzionamento teorico ma non li ho mai negoziati."
+        score: 2
+      - id: "a3"
+        text: "Li ho negoziati occasionalmente e con importi contenuti."
+        score: 4
+      - id: "a4"
+        text: "Li utilizzo regolarmente nelle mie strategie di investimento."
+        score: 5
+
+  - id: "q_exp_duration"
+    pillar: "experience"
+    text: "Da quanti anni gestisci o monitori attivamente i tuoi investimenti personali?"
+    options:
+      - id: "a1"
+        text: "Meno di 1 anno."
+        score: 1
+      - id: "a2"
+        text: "Tra 1 e 5 anni."
+        score: 3
+      - id: "a3"
+        text: "Più di 5 anni."
+        score: 5
+
+  # ============================================================================
+  # PILASTRO 2: SITUAZIONE FINANZIARIA (Peso: 45%)
+  # ============================================================================
+  - id: "q_fin_income_stability"
+    pillar: "financial_situation"
+    text: "Come descriveresti la stabilità e la prevedibilità della tua principale fonte di reddito?"
+    options:
+      - id: "a1"
+        text: "Instabile o altamente imprevedibile (es. lavoro stagionale, reddito basato solo su provvigioni)."
+        score: 1
+      - id: "a2"
+        text: "Moderatamente stabile, con possibili fluttuazioni."
+        score: 3
+      - id: "a3"
+        text: "Altamente stabile e sicura (es. lavoro dipendente a tempo indeterminato, pensione garantita)."
+        score: 5
+
+  - id: "q_fin_loss_capacity"
+    pillar: "financial_situation"
+    text: "In caso di un grave crollo dei mercati, quale livello di perdita temporanea del capitale investito puoi sopportare senza compromettere il tuo tenore di vita?"
+    options:
+      - id: "a1"
+        text: "Praticamente nessuna. Non posso permettermi alcuna perdita di capitale."
+        score: 1
+      - id: "a2"
+        text: "Una flessione moderata (fino al 15%) sarebbe gestibile, seppur con stress."
+        score: 3
+      - id: "a3"
+        text: "Una flessione significativa (oltre il 30%), poiché le mie spese essenziali sono coperte da altre entrate."
+        score: 5
+
+  - id: "q_fin_wealth_pct"
+    pillar: "financial_situation"
+    text: "Che percentuale del tuo patrimonio liquido totale (esclusa la prima casa) rappresenta questo specifico investimento?"
+    options:
+      - id: "a1"
+        text: "Una parte predominante (più del 70% della mia liquidità)."
+        score: 1
+      - id: "a2"
+        text: "Una parte significativa (tra il 30% e il 70%)."
+        score: 3
+      - id: "a3"
+        text: "Una parte minoritaria (meno del 30% della mia liquidità)."
+        score: 5
+
+  - id: "q_fin_liquidity_need"
+    pillar: "financial_situation"
+    text: "Prevedi di dover prelevare una somma significativa da questo portafoglio per spese importanti (es. acquisto casa, spese mediche) nei prossimi 12-24 mesi?"
+    options:
+      - id: "a1"
+        text: "Sì, avrò sicuramente bisogno di prelevare gran parte o tutto il capitale a breve."
+        score: 1
+      - id: "a2"
+        text: "Possibile, potrei doverne prelevare una piccola parte in caso di imprevisti."
+        score: 3
+      - id: "a3"
+        text: "No, questi fondi sono destinati esclusivamente a un investimento di lungo termine."
+        score: 5
+
+  # ============================================================================
+  # PILASTRO 3: OBIETTIVI E PREFERENZE (Peso: 35%)
+  # ============================================================================
+  - id: "q_obj_horizon"
+    pillar: "objectives_and_preferences"
+    text: "Qual è l'orizzonte temporale previsto per questo investimento?"
+    options:
+      - id: "a1"
+        text: "Breve termine (meno di 2 anni)."
+        score: 1
+      - id: "a2"
+        text: "Medio termine (da 2 a 7 anni)."
+        score: 3
+      - id: "a3"
+        text: "Lungo termine (più di 7 anni)."
+        score: 5
+
+  - id: "q_obj_target"
+    pillar: "objectives_and_preferences"
+    text: "Qual è il tuo obiettivo finanziario primario per questo capitale?"
+    options:
+      - id: "a1"
+        text: "Conservazione del Capitale: voglio proteggere il valore nominale dei miei soldi."
+        score: 1
+      - id: "a2"
+        text: "Crescita Bilanciata: voglio superare l'inflazione con un mix di stabilità e crescita."
+        score: 3
+      - id: "a3"
+        text: "Espansione Aggressiva: voglio massimizzare la crescita a lungo termine, accettando forti oscillazioni."
+        score: 5
+
+  - id: "q_obj_reaction"
+    pillar: "objectives_and_preferences"
+    text: "Se il valore del tuo portafoglio scendesse del 20% in un solo mese a causa di un panico di mercato, quale sarebbe la tua reazione?"
+    options:
+      - id: "a1"
+        text: "Venderei tutto immediatamente per evitare ulteriori perdite."
+        score: 1
+      - id: "a2"
+        text: "Non farei nulla, ma vivrei la situazione con forte ansia e controllerei i prezzi continuamente."
+        score: 3
+      - id: "a3"
+        text: "Lo considererei un normale ciclo di mercato e valuterei di acquistare altri asset a sconto."
+        score: 5
+
+  - id: "q_obj_inflation_fear"
+    pillar: "objectives_and_preferences"
+    text: "Pensando ai tuoi investimenti, quale di questi due rischi ti preoccupa maggiormente?"
+    options:
+      - id: "a1"
+        text: "Rischio di Mercato: vedere il mio portafoglio scendere di valore nel breve termine, anche se può recuperare in futuro."
+        score: 1
+      - id: "a2"
+        text: "Rischio di Inflazione: tenere i soldi 'al sicuro' sul conto corrente ma vederne erodere silenziosamente il potere d'acquisto nel tempo."
+        score: 5

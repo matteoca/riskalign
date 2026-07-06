@@ -1,0 +1,90 @@
+# ==========================================
+# FILE DI SISTEMA OPERATIVO
+# ==========================================
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ==========================================
+# PYTHON (Compilati e Cache)
+# ==========================================
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ==========================================
+# AMBIENTI VIRTUALI (Virtual Environments)
+# ==========================================
+.venv/
+venv/
+ENV/
+env/
+ENV*/
+*.env
+
+# ==========================================
+# JUPYTER NOTEBOOKS (Cache e Checkpoint)
+# ==========================================
+.ipynb_checkpoints
+*/.ipynb_checkpoints/
+.pytest_cache/
+.tox/
+.coverage
+.coverage.*
+.cache
+htmlcov/
+
+# ==========================================
+# IDE / EDITORS (VS Code, PyCharm)
+# ==========================================
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ==========================================
+# DATI (Esclusione file locali pesanti)
+# ==========================================
+# Ignora tutti i file dentro la cartella data/
+data/*
+
+# Ma non ignorare il file .gitkeep (permette di mantenere la cartella vuota su Git)
+!data/.gitkeep
+
+# Escludi file di dati comuni nel caso finissero fuori dalla cartella data/
+*.csv
+*.xlsx
+*.xls
+*.json
+*.parquet
+*.pickle
+*.pkl

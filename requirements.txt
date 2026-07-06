@@ -1,0 +1,33 @@
+# ==============================================================================
+# CORE & UTILITIES
+# ==============================================================================
+PyYAML>=6.0.1          # For parsing the questionnaire configuration file
+
+# ==============================================================================
+# DATA SCIENCE & QUANTITATIVE ANALYSIS
+# ==============================================================================
+numpy>=1.26.0          # Linear algebra and matrix operations
+pandas>=2.1.0          # Time-series data manipulation and handling
+scipy>=1.11.0          # Statistical functions for risk metrics (VaR, Sortino)
+
+# ==============================================================================
+# DATA SOURCING
+# ==============================================================================
+yfinance>=0.2.30       # Interface to download historical market data from Yahoo Finance
+
+# ==============================================================================
+# USER INTERFACE (To be used later)
+# ==============================================================================
+streamlit>=1.30.0      # Framework for the interactive web application
+
+# ==============================================================================
+# DEVELOPMENT & PROTOTYPING (Only needed for local dev)
+# ==============================================================================
+notebook>=7.0.0        # To run and edit Jupyter Notebooks in the notebooks/ folder
+ipykernel>=6.25.0      # Allows Jupyter to interact with this specific virtual env
+
+# ==============================================================================
+# TESTING (Only needed for development)
+# ==============================================================================
+pytest>=7.4.0          # The standard Python testing framework
+pytest-mock>=3.11.1    # Extension to easily mock external APIs (like yfinance)
