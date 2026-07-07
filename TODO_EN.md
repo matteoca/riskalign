@@ -1,5 +1,5 @@
 ## 🛠️ Phase 1: Technical & UX Optimization (Short Term)
-[ ] Implement Data Caching: Currently, if the user changes a MiFID questionnaire answer, the dashboard reloads data from yfinance. Use @st.cache_data to store downloaded prices and avoid redundant API calls (speeds up the app by ~90%).
+[x] Implement Data Caching: Currently, if the user changes a MiFID questionnaire answer, the dashboard reloads data from yfinance. Use @st.cache_data to store downloaded prices and avoid redundant API calls (speeds up the app by ~90%).
 
 [ ] PDF Export: Add a button in the UI (Tab 3) to generate and download a clean, formatted PDF report — essential for B2B use cases (the advisor delivering the document to the client).
 
@@ -19,6 +19,9 @@
 
 [ ] Predefined Stress Tests: Add a module to simulate specific historical scenarios on the portfolio (e.g. "How would this portfolio have performed during the Covid crash of 2020 or the 2022 inflation spike?").
 
+## 📥 Phase 2.5: Smart Portfolio Import
+[ ] Smart CSV Parser: Implement an intelligent parser for portfolio CSV uploads, capable of automatically recognizing export formats from major banking apps (e.g. Fineco, Directa, Degiro, Interactive Brokers). Evaluate using an LLM to infer column mappings (ticker, quantity, market value) when the format is non-standard.
+
 ## 🚀 Phase 3: Infrastructure & Production Deployment
 [ ] Dependency Freeze: Generate a clean requirements.txt (removing unused libraries) to guarantee environment reproducibility.
 
@@ -30,3 +33,5 @@
 
 ## 🔌 Phase 4: Business Integrations (Long Term)
 [ ] Open Banking API: Integrate a provider (e.g. Tink, Plaid) for automatic ingestion of securities positions directly from the user's bank account.
+
+[ ] REST API for Report: Expose an API endpoint (e.g. FastAPI) allowing third-party systems to invoke the RiskAlign pipeline and download the alignment report in JSON or PDF format, enabling integration with CRMs, advisory platforms, and external applications.

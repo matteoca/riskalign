@@ -1,5 +1,5 @@
 ## 🛠️ Fase 1: Ottimizzazione Tecnica e UX (Breve Termine)
-[ ] Implementare il Caching dei Dati: Attualmente, se l'utente cambia una risposta del questionario MiFID, la dashboard ricarica i dati da yfinance. Usare @st.cache_data per memorizzare i prezzi scaricati ed evitare chiamate API ridondanti (velocizza l'app del 90%).
+[x] Implementare il Caching dei Dati: Attualmente, se l'utente cambia una risposta del questionario MiFID, la dashboard ricarica i dati da yfinance. Usare @st.cache_data per memorizzare i prezzi scaricati ed evitare chiamate API ridondanti (velocizza l'app del 90%).
 
 [ ] Esportazione PDF: Aggiungere un bottone nella UI (Tab 3) per generare e scaricare un report in PDF pulito e formattato, fondamentale per l'uso B2B (il consulente che consegna il documento al cliente).
 
@@ -19,6 +19,9 @@
 
 [ ] Stress Testing Predefiniti: Inserire un modulo per simulare scenari storici specifici sul portafoglio (es. "Come si sarebbe comportato durante il crollo Covid del 2020 o l'inflazione del 2022?").
 
+## 📥 Fase 2.5: Smart Import Portafoglio
+[ ] Smart CSV Parser: Implementare un parser intelligente per il caricamento del portafoglio da CSV, in grado di riconoscere automaticamente i formati di export delle principali app bancarie (es. Fineco, Directa, Degiro, Interactive Brokers). Valutare l'uso di un LLM per inferire la mappatura delle colonne (ticker, quantità, controvalore) quando il formato non è standard.
+
 ## 🚀 Fase 3: Infrastruttura e Messa in Produzione (Deployment)
 [ ] Congelamento delle Dipendenze: Generare un file requirements.txt pulito (rimuovendo le librerie non usate) per garantire la riproducibilità dell'ambiente.
 
@@ -28,5 +31,7 @@
 
 [ ] Deployment Pubblico: Pubblicare l'applicazione su una piattaforma Cloud (es. Streamlit Community Cloud, Heroku o AWS EC2) per renderla accessibile tramite URL.
 
-🔌 Fase 4: Integrazioni Business (Lungo Termine)
+## 🔌 Fase 4: Integrazioni Business (Lungo Termine)
 [ ] Open Banking API: Integrare un provider (es. Tink, Plaid) per l'ingestione automatica delle posizioni titoli direttamente dal conto corrente dell'utente.
+
+[ ] API REST per Report: Esporre un endpoint API (es. FastAPI) che consenta a sistemi terzi di invocare la pipeline RiskAlign e scaricare il report di allineamento in formato JSON o PDF, abilitando l'integrazione con CRM, piattaforme di consulenza e applicazioni esterne.
