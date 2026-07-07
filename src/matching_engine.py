@@ -78,15 +78,15 @@ def run_matching_logic(user_sri: float, portfolio_volatility: float,
     # "a3" = Can bear significant losses
     if loss_capacity_answer == "a1" and var_percentage > 0.05:
         color = "RED"
-        label = "Critical Over-exposure (VaR Override)"
+        label = "Sovraesposizione Critica (Override VaR)"
         override_triggered = True
-        override_reason = f"Portfolio 1-Month VaR is {var_percentage*100:.1f}%, exceeding your absolute zero-loss tolerance."
+        override_reason = f"Il VaR mensile del portafoglio è {var_percentage*100:.1f}%, superiore alla tua tolleranza dichiarata di zero perdite."
         
     elif loss_capacity_answer == "a2" and var_percentage > 0.15:
         color = "RED"
-        label = "Critical Over-exposure (VaR Override)"
+        label = "Sovraesposizione Critica (Override VaR)"
         override_triggered = True
-        override_reason = f"Portfolio 1-Month VaR is {var_percentage*100:.1f}%, exceeding your moderate loss tolerance."
+        override_reason = f"Il VaR mensile del portafoglio è {var_percentage*100:.1f}%, superiore alla tua tolleranza moderata alle perdite."
 
     # 5. Build and return the final report
     return {

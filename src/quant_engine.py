@@ -125,14 +125,22 @@ def compute_value_at_risk(actual_volatility: float, portfolio_value: float,
     }
 
 def run_quantitative_analysis(weight_dict: Dict[str, float], portfolio_value: float, 
-                              start_date: str, end_date: str) -> Dict[str, Any]:
+                              start_date: str, end_date: str,
+                              prices_df: pd.DataFrame = None) -> Dict[str, Any]:
     """
     Orchestrator function that executes the full quantitative pipeline.
+    If prices_df is provided, skips the download step (used for caching).
     """
     tickers = list(weight_dict.keys())
     
-    # 1. Download data, collecting any tickers dropped due to missing data
-    prices_df, dropped_tickers = download_portfolio_data(tickers, start_date, end_date)
+    # 1. Download data (or use cached), collecting any tickers dropped due to missing data
+    if prices_df is None:
+        prices_df, dropped_tickers = download_portfolio_data(tickers, start_date, end_date)
+    else:
+        # Detect dropped tickers from pre-fetched data
+        null_tickers = [col for col in prices_df.columns if prices_df[col].isna().all()]
+        prices_df = prices_df.drop(columns=null_tickers)
+        dropped_tickers = null_tickers
 
     # 2. Rebuild weight_dict excluding dropped tickers and renormalize to sum to 1.0
     active_weights = {t: w for t, w in weight_dict.items() if t not in dropped_tickers}

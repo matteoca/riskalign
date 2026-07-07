@@ -10,6 +10,8 @@ import pandas as pd
 # Aggiungiamo la root directory al path per importare i moduli backend
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.main import generate_full_risk_report
+from src.quant_engine import download_portfolio_data
+from datetime import date, timedelta
 
 # ==========================================
 # CONFIGURAZIONE PAGINA
@@ -28,6 +30,16 @@ def load_config():
     config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'questionnaire.yaml')
     with open(config_path, 'r', encoding='utf-8') as file:
         return yaml.safe_load(file)
+
+@st.cache_data(show_spinner="Download dati di mercato in corso...")
+def fetch_market_data(tickers: tuple):
+    """Cached download of market data. Only re-runs if tickers change."""
+    end_dt = date.today()
+    start_dt = end_dt - timedelta(days=5 * 365)
+    prices_df, dropped = download_portfolio_data(
+        list(tickers), start_dt.strftime("%Y-%m-%d"), end_dt.strftime("%Y-%m-%d")
+    )
+    return prices_df, dropped
 
 config = load_config()
 
@@ -277,15 +289,20 @@ with tab3:
         elif 'portfolio_weights' not in st.session_state or not st.session_state.portfolio_weights:
             st.error("Per favore, inserisci almeno un asset nel portafoglio.")
         else:
-            with st.spinner("Analisi quantitativa in corso (download dati da mercato storici)..."):
+            with st.spinner("Elaborazione in corso..."):
                 try:
+                    # Cached market data fetch (only re-downloads if portfolio tickers change)
+                    tickers_tuple = tuple(sorted(st.session_state.portfolio_weights.keys()))
+                    prices_df, _ = fetch_market_data(tickers_tuple)
+
                     # Invocazione del motore unificato (src/main.py)
                     config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'questionnaire.yaml')
                     report = generate_full_risk_report(
                         user_answers=st.session_state.user_answers,
                         portfolio_weights=st.session_state.portfolio_weights,
                         portfolio_value=st.session_state.portfolio_value,
-                        yaml_config_path=config_path
+                        yaml_config_path=config_path,
+                        prices_df=prices_df
                     )
                     
                     mifid = report['mifid_profile']

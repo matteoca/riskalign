@@ -5,6 +5,8 @@ import os
 from datetime import date, timedelta
 from typing import Dict, Any
 
+import pandas as pd
+
 # Import the specialized engines
 from src.mifid_engine import calculate_mifid_profile
 from src.quant_engine import run_quantitative_analysis
@@ -14,7 +16,8 @@ def generate_full_risk_report(
     user_answers: Dict[str, str], 
     portfolio_weights: Dict[str, float], 
     portfolio_value: float, 
-    yaml_config_path: str = "config/questionnaire.yaml"
+    yaml_config_path: str = "config/questionnaire.yaml",
+    prices_df: pd.DataFrame = None
 ) -> Dict[str, Any]:
     """
     Master orchestrator function. Executes the MiFID profiling, quantitative risk 
@@ -49,7 +52,8 @@ def generate_full_risk_report(
         weight_dict=portfolio_weights,
         portfolio_value=portfolio_value,
         start_date=start_date.strftime("%Y-%m-%d"),
-        end_date=end_date.strftime("%Y-%m-%d")
+        end_date=end_date.strftime("%Y-%m-%d"),
+        prices_df=prices_df
     )
     
     actual_volatility = quant_results['volatility_analysis']['actual_volatility']

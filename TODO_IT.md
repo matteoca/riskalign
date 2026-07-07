@@ -5,6 +5,13 @@
 
 [ ] Gestione Rischio Valutario (FX Risk): Attualmente i calcoli assumono che tutti gli asset siano nella valuta di base. Implementare una conversione automatica in Euro per gli asset quotati in USD, per riflettere la reale volatilità subita dall'investitore europeo.
 
+## 📋 Fase 1.5: Potenziamento Questionario MiFID
+[ ] Ampliamento Domande: Aggiungere almeno 2 domande per pilastro per migliorare la granularità della profilazione, mantenendo il questionario snello e non oneroso per l'utente.
+
+[ ] Scoring Non Lineare: Sostituire la media aritmetica intra-pilastro con un sistema di pesi differenziati per domanda, dando più rilevanza alle domande con maggiore potere discriminante (es. capacità di perdita > orizzonte temporale).
+
+[ ] Validazione Incoerenze: Implementare un modulo di consistency check che rilevi risposte contraddittorie (es. "non ho mai investito" + "faccio trading giornaliero con derivati") e segnali un warning all'utente o al consulente.
+
 ## 📊 Fase 2: Potenziamento del Motore Quantitativo (Medio Termine)
 [ ] Evoluzione del Value at Risk (VaR): Passare dal VaR Parametrico (che assume una distribuzione Normale dei rendimenti) al VaR Storico o a una simulazione Monte Carlo, per catturare meglio i "Cigni Neri" (fat tails).
 
