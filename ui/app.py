@@ -50,7 +50,7 @@ st.title("⚖️ RiskAlign")
 st.subheader("Allineamento algoritmico tra Profilo MiFID e Rischio Quantitativo")
 
 # Creiamo i tab per separare il flusso logico
-tab1, tab2, tab3 = st.tabs(["📋 1. Profilo (MiFID)", "💼 2. Portafoglio", "🚦 3. Analisi e Semaforo"])
+tab1, tab2, tab3 = st.tabs(["📋 1. Profilo utente (MiFID)", "💼 2. Caricamento Portafoglio", "🚦 3. Analisi del Portafoglio"])
 
 # --- TAB 1: QUESTIONARIO MIFID ---
 with tab1:
@@ -329,7 +329,9 @@ with tab3:
                     with col2:
                         st.info("📈 **Rischio Reale del Portafoglio**")
                         st.metric("Volatilità Annualizzata", f"{quant['volatility_analysis']['actual_volatility']*100:.2f}%")
-                        st.metric("VaR Mensile (95%)", f"€ {quant['var_analysis']['var_absolute']:,.2f}")
+                        var_abs = quant['var_analysis']['var_absolute']
+                        var_pct = quant['var_analysis']['var_percentage'] * 100
+                        st.metric("VaR Mensile (95%)", f"€ {var_abs:,.2f} ({var_pct:.2f}% del portafoglio)")
                     
                     st.divider()
                     
