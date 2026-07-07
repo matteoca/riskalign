@@ -313,6 +313,11 @@ with tab3:
                     quant = report['quant_metrics']
                     match = report['final_assessment']
 
+                    # --- WARNING INCOERENZE QUESTIONARIO ---
+                    if mifid.get('consistency_warnings'):
+                        for warn in mifid['consistency_warnings']:
+                            st.warning(f"⚠️ **Incoerenza rilevata:** {warn}")
+
                     # --- DISCLAIMER TICKER ESCLUSI ---
                     if quant.get('dropped_tickers'):
                         dropped = ', '.join(quant['dropped_tickers'])

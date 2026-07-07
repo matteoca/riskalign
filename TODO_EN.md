@@ -1,16 +1,16 @@
 ## 🛠️ Phase 1: Technical & UX Optimization (Short Term)
 [x] Implement Data Caching: Currently, if the user changes a MiFID questionnaire answer, the dashboard reloads data from yfinance. Use @st.cache_data to store downloaded prices and avoid redundant API calls (speeds up the app by ~90%).
 
-[ ] PDF Export: Add a button in the UI (Tab 3) to generate and download a clean, formatted PDF report — essential for B2B use cases (the advisor delivering the document to the client).
+[x] PDF Export: Add a button in the UI (Tab 3) to generate and download a clean, formatted PDF report — essential for B2B use cases (the advisor delivering the document to the client).
 
 [ ] FX Risk Management: Currently the calculations assume all assets are denominated in the base currency. Implement automatic EUR conversion for USD-quoted assets to reflect the real volatility experienced by the European investor.
 
 ## 📋 Phase 1.5: MiFID Questionnaire Enhancement
-[ ] Expand Questions: Add at least 2 questions per pillar to improve profiling granularity, while keeping the questionnaire lean and not burdensome for the user.
+[x] Expand Questions: Add at least 2 questions per pillar to improve profiling granularity, while keeping the questionnaire lean and not burdensome for the user.
 
-[ ] Non-Linear Scoring: Replace the intra-pillar arithmetic mean with a weighted scoring system per question, giving more relevance to questions with higher discriminating power (e.g. loss capacity > time horizon).
+[x] Non-Linear Scoring: Replace the intra-pillar arithmetic mean with a weighted scoring system per question, giving more relevance to questions with higher discriminating power (e.g. loss capacity > time horizon).
 
-[ ] Inconsistency Validation: Implement a consistency check module that detects contradictory answers (e.g. "I have never invested" + "I actively trade derivatives daily") and raises a warning to the user or advisor.
+[x] Inconsistency Validation: Implement a consistency check module that detects contradictory answers (e.g. "I have never invested" + "I actively trade derivatives daily") and raises a warning to the user or advisor.
 
 ## 📊 Phase 2: Quantitative Engine Enhancement (Mid Term)
 [ ] Value at Risk Evolution: Move from Parametric VaR (which assumes a Normal distribution of returns) to Historical VaR or a Monte Carlo simulation, to better capture "Black Swan" events (fat tails).

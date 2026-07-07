@@ -90,13 +90,18 @@ if __name__ == "__main__":
         "q_exp_education": "a2",
         "q_exp_frequency": "a2",
         "q_exp_derivatives": "a1",
+        "q_exp_duration": "a2",
+        "q_exp_diversification": "a2",
         "q_fin_income_stability": "a2",
         "q_fin_loss_capacity": "a1",  # Critical: Cannot bear losses
         "q_fin_wealth_pct": "a2",
         "q_fin_liquidity_need": "a2",
+        "q_fin_debt_obligations": "a2",
         "q_obj_horizon": "a3",
-        "q_obj_target": "a2",
-        "q_obj_reaction": "a2"
+        "q_obj_target": "a3",
+        "q_obj_reaction": "a2",
+        "q_obj_inflation_fear": "a2",
+        "q_obj_max_acceptable_loss": "a2"
     }
     
     mock_portfolio = {
