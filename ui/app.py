@@ -114,7 +114,9 @@ with tab2:
         "SOL-USD": "Solana",
         "GLD": "SPDR Gold Shares (Oro fisico)",
         "SLV": "iShares Silver Trust (Argento fisico)",
-        "EURUSD=X": "Euro / Dollaro Statunitense (Forex)"
+        "EURUSD=X": "Euro / Dollaro Statunitense (Forex)",
+        "ACWX": "iShares MSCI ACWI ex U.S. (Azionario Globale ex-USA)",
+        "IEMG": "iShares Core MSCI Emerging Markets ETF"
     }
     
     # Inizializzazione DataFrame di sessione se vuoto
@@ -183,10 +185,9 @@ with tab2:
                     format_func=lambda x: f"{x} - {POPULAR_TICKERS[x]}" if x in POPULAR_TICKERS else x
                 )
                 
+                custom_ticker = ""
                 if selected_option == "Altro (Inserimento manuale)":
-                    custom_ticker = st.text_input("Inserisci il Ticker Yahoo Finance (es. TSLA, NVDA):").upper().strip()
-                else:
-                    custom_ticker = ""
+                    custom_ticker = st.text_input("Inserisci il Ticker Yahoo Finance (es. TSLA, NVDA):", key="custom_ticker_input").upper().strip()
                     
             with col_t2:
                 new_amount = st.number_input("Controvalore (€)", min_value=0.0, step=1000.0, format="%.2f")
@@ -194,15 +195,17 @@ with tab2:
             with col_t3:
                 st.write("") 
                 st.write("")
-                if st.button("Aggiungi Asset", use_container_width=True):
-                    final_ticker = custom_ticker if selected_option == "Altro (Inserimento manuale)" else selected_option
-                    
-                    if final_ticker and final_ticker != "Seleziona..." and new_amount > 0:
-                        new_row = pd.DataFrame([{"Ticker": final_ticker, "Controvalore (€)": new_amount}])
-                        st.session_state.portfolio_df = pd.concat([st.session_state.portfolio_df, new_row], ignore_index=True)
-                        st.rerun()
-                    else:
-                        st.warning("Compila tutti i campi prima di aggiungere.")
+                add_clicked = st.button("Aggiungi Asset", use_container_width=True)
+
+        if add_clicked:
+            final_ticker = custom_ticker if selected_option == "Altro (Inserimento manuale)" else selected_option
+            
+            if final_ticker and final_ticker != "Seleziona..." and new_amount > 0:
+                new_row = pd.DataFrame([{"Ticker": final_ticker, "Controvalore (€)": new_amount}])
+                st.session_state.portfolio_df = pd.concat([st.session_state.portfolio_df, new_row], ignore_index=True)
+                st.rerun()
+            else:
+                st.warning("Compila tutti i campi prima di aggiungere.")
 
     st.divider()
 
