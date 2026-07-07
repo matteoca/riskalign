@@ -21,6 +21,11 @@ yfinance>=0.2.30       # Interface to download historical market data from Yahoo
 streamlit>=1.30.0      # Framework for the interactive web application
 
 # ==============================================================================
+# REPORT GENERATION
+# ==============================================================================
+fpdf2>=2.7.0           # PDF generation for downloadable risk reports
+
+# ==============================================================================
 # DEVELOPMENT & PROTOTYPING (Only needed for local dev)
 # ==============================================================================
 notebook>=7.0.0        # To run and edit Jupyter Notebooks in the notebooks/ folder

@@ -11,6 +11,7 @@ import pandas as pd
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.main import generate_full_risk_report
 from src.quant_engine import download_portfolio_data
+from src.report_generator import generate_pdf_report
 from datetime import date, timedelta
 
 # ==========================================
@@ -354,6 +355,20 @@ with tab3:
                     
                     if match['emergency_brake_active']:
                         st.error(f"🛑 **BLOCCO DI EMERGENZA (VaR):** {match['emergency_brake_reason']}")
+
+                    # --- DOWNLOAD PDF ---
+                    st.divider()
+                    pdf_bytes = generate_pdf_report(
+                        report=report,
+                        portfolio_weights=st.session_state.portfolio_weights,
+                        portfolio_value=st.session_state.portfolio_value
+                    )
+                    st.download_button(
+                        label="📄 Scarica Report PDF",
+                        data=pdf_bytes,
+                        file_name=f"RiskAlign_Report_{date.today().strftime('%Y%m%d')}.pdf",
+                        mime="application/pdf"
+                    )
                         
                 except Exception as e:
                     st.error(f"Si è verificato un errore durante l'elaborazione quantitativa: {e}")
