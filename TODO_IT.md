@@ -35,3 +35,6 @@
 [ ] Open Banking API: Integrare un provider (es. Tink, Plaid) per l'ingestione automatica delle posizioni titoli direttamente dal conto corrente dell'utente.
 
 [ ] API REST per Report: Esporre un endpoint API (es. FastAPI) che consenta a sistemi terzi di invocare la pipeline RiskAlign e scaricare il report di allineamento in formato JSON o PDF, abilitando l'integrazione con CRM, piattaforme di consulenza e applicazioni esterne.
+
+## ✨ Nice to Have
+[ ] Mappa Geografica del Portafoglio: Visualizzare una mappa coropletica (world heatmap) che rappresenti la distribuzione geografica del portafoglio. Per le azioni singole, derivare il paese dalla quotazione o dall'headquarter (via yfinance). Per gli ETF più comuni, mantenere un dizionario statico con la breakdown geografica. Visualizzazione con Plotly choropleth integrato in Streamlit.

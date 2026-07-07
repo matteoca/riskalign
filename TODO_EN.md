@@ -35,3 +35,6 @@
 [ ] Open Banking API: Integrate a provider (e.g. Tink, Plaid) for automatic ingestion of securities positions directly from the user's bank account.
 
 [ ] REST API for Report: Expose an API endpoint (e.g. FastAPI) allowing third-party systems to invoke the RiskAlign pipeline and download the alignment report in JSON or PDF format, enabling integration with CRMs, advisory platforms, and external applications.
+
+## ✨ Nice to Have
+[ ] Portfolio Geographic Map: Display a choropleth world heatmap showing the geographic distribution of the portfolio. For individual stocks, derive the country from the exchange or headquarters (via yfinance). For common ETFs, maintain a static dictionary with the geographic breakdown. Render with Plotly choropleth integrated in Streamlit.
