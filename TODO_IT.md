@@ -1,7 +1,13 @@
-## 🛠️ Fase 1: Ottimizzazione Tecnica e UX (Breve Termine)
+## 🛠️ Fase 1: Ottimizzazione Tecnica e UX
 [x] Implementare il Caching dei Dati: Attualmente, se l'utente cambia una risposta del questionario MiFID, la dashboard ricarica i dati da yfinance. Usare @st.cache_data per memorizzare i prezzi scaricati ed evitare chiamate API ridondanti (velocizza l'app del 90%).
 
 [x] Esportazione PDF: Aggiungere un bottone nella UI (Tab 3) per generare e scaricare un report in PDF pulito e formattato, fondamentale per l'uso B2B (il consulente che consegna il documento al cliente).
+
+[ ] Cache del Profilo Utente: Salvare il profilo MiFID compilato in sessione o su file locale, così che l'utente non debba ricompilare il questionario a ogni aggiornamento della pagina.
+
+[ ] Barra di Progresso Questionario: Mostrare all'utente a che punto si trova nella compilazione (es. "Domanda 8 di 15 - Pilastro: Situazione Finanziaria") per ridurre il tasso di abbandono.
+
+[ ] Riepilogo Profilo nel Tab Analisi: Prima di lanciare il calcolo, mostrare un mini-sommario del profilo MiFID calcolato (SRI, medie per pilastro) così l'utente ha chiaro il suo punto di partenza senza tornare al tab 1.
 
 [ ] Gestione Rischio Valutario (FX Risk): Attualmente i calcoli assumono che tutti gli asset siano nella valuta di base. Implementare una conversione automatica in Euro per gli asset quotati in USD, per riflettere la reale volatilità subita dall'investitore europeo.
 
@@ -12,17 +18,21 @@
 
 [x] Validazione Incoerenze: Implementare un modulo di consistency check che rilevi risposte contraddittorie (es. "non ho mai investito" + "faccio trading giornaliero con derivati") e segnali un warning all'utente o al consulente.
 
-## 📊 Fase 2: Potenziamento del Motore Quantitativo (Medio Termine)
+## 📊 Fase 2: Potenziamento Motore e Analisi Avanzate
 [ ] Evoluzione del Value at Risk (VaR): Passare dal VaR Parametrico (che assume una distribuzione Normale dei rendimenti) al VaR Storico o a una simulazione Monte Carlo, per catturare meglio i "Cigni Neri" (fat tails).
 
 [ ] Volatilità Dinamica (EWMA): Implementare una media mobile esponenziale per dare maggior peso agli eventi di mercato recenti rispetto a quelli di 5 anni fa.
 
 [ ] Stress Testing Predefiniti: Inserire un modulo per simulare scenari storici specifici sul portafoglio (es. "Come si sarebbe comportato durante il crollo Covid del 2020 o l'inflazione del 2022?").
 
+[ ] Confronto tra Scenari: Permettere all'utente di salvare più portafogli e confrontarli side-by-side sullo stesso profilo MiFID, evidenziando quale configurazione è più allineata.
+
+[ ] Sensitivity Analysis: Mostrare come cambia il semaforo al variare del peso di un singolo asset (es. "Se aumenti BTC dal 10% al 20%, il delta passa da +0.3 a +1.8").
+
 ## 📥 Fase 2.5: Smart Import Portafoglio
 [ ] Smart CSV Parser: Implementare un parser intelligente per il caricamento del portafoglio da CSV, in grado di riconoscere automaticamente i formati di export delle principali app bancarie (es. Fineco, Directa, Degiro, Interactive Brokers). Valutare l'uso di un LLM per inferire la mappatura delle colonne (ticker, quantità, controvalore) quando il formato non è standard.
 
-## 🚀 Fase 3: Infrastruttura e Messa in Produzione (Deployment)
+## 🚀 Fase 3: Infrastruttura e Deployment
 [ ] Congelamento delle Dipendenze: Generare un file requirements.txt pulito (rimuovendo le librerie non usate) per garantire la riproducibilità dell'ambiente.
 
 [ ] Dockerizzazione: Scrivere un Dockerfile per incapsulare l'applicazione e renderla agnostica rispetto al sistema operativo.
@@ -31,10 +41,14 @@
 
 [ ] Deployment Pubblico: Pubblicare l'applicazione su una piattaforma Cloud (es. Streamlit Community Cloud, Heroku o AWS EC2) per renderla accessibile tramite URL.
 
-## 🔌 Fase 4: Integrazioni Business (Lungo Termine)
+## 🔌 Fase 4: Integrazioni Business
 [ ] Open Banking API: Integrare un provider (es. Tink, Plaid) per l'ingestione automatica delle posizioni titoli direttamente dal conto corrente dell'utente.
 
 [ ] API REST per Report: Esporre un endpoint API (es. FastAPI) che consenta a sistemi terzi di invocare la pipeline RiskAlign e scaricare il report di allineamento in formato JSON o PDF, abilitando l'integrazione con CRM, piattaforme di consulenza e applicazioni esterne.
 
 ## ✨ Nice to Have
 [ ] Mappa Geografica del Portafoglio: Visualizzare una mappa coropletica (world heatmap) che rappresenti la distribuzione geografica del portafoglio. Per le azioni singole, derivare il paese dalla quotazione o dall'headquarter (via yfinance). Per gli ETF più comuni, mantenere un dizionario statico con la breakdown geografica. Visualizzazione con Plotly choropleth integrato in Streamlit.
+
+[ ] Backtesting del Drawdown: Dato il portafoglio attuale, mostrare il max drawdown storico reale (non solo VaR parametrico) per rendere tangibile il rischio vissuto in passato.
+
+[ ] Storico delle Analisi: Salvare i report generati con timestamp, così l'utente può vedere come evolve il rischio nel tempo se modifica il portafoglio.

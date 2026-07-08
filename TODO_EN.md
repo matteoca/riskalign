@@ -1,7 +1,13 @@
-## 🛠️ Phase 1: Technical & UX Optimization (Short Term)
+## 🛠️ Phase 1: Technical & UX Optimization
 [x] Implement Data Caching: Currently, if the user changes a MiFID questionnaire answer, the dashboard reloads data from yfinance. Use @st.cache_data to store downloaded prices and avoid redundant API calls (speeds up the app by ~90%).
 
 [x] PDF Export: Add a button in the UI (Tab 3) to generate and download a clean, formatted PDF report — essential for B2B use cases (the advisor delivering the document to the client).
+
+[ ] User Profile Caching: Persist the completed MiFID profile in session or local file, so the user does not have to re-fill the questionnaire on every page refresh.
+
+[ ] Questionnaire Progress Bar: Show the user their progress during compilation (e.g. "Question 8 of 15 - Pillar: Financial Situation") to reduce abandonment rate.
+
+[ ] Profile Summary in Analysis Tab: Before launching the calculation, display a mini-summary of the computed MiFID profile (SRI, pillar averages) so the user understands their starting point without switching back to tab 1.
 
 [ ] FX Risk Management: Currently the calculations assume all assets are denominated in the base currency. Implement automatic EUR conversion for USD-quoted assets to reflect the real volatility experienced by the European investor.
 
@@ -12,17 +18,21 @@
 
 [x] Inconsistency Validation: Implement a consistency check module that detects contradictory answers (e.g. "I have never invested" + "I actively trade derivatives daily") and raises a warning to the user or advisor.
 
-## 📊 Phase 2: Quantitative Engine Enhancement (Mid Term)
+## 📊 Phase 2: Engine Enhancement & Advanced Analysis
 [ ] Value at Risk Evolution: Move from Parametric VaR (which assumes a Normal distribution of returns) to Historical VaR or a Monte Carlo simulation, to better capture "Black Swan" events (fat tails).
 
 [ ] Dynamic Volatility (EWMA): Implement an exponentially weighted moving average to give more weight to recent market events compared to those from 5 years ago.
 
 [ ] Predefined Stress Tests: Add a module to simulate specific historical scenarios on the portfolio (e.g. "How would this portfolio have performed during the Covid crash of 2020 or the 2022 inflation spike?").
 
+[ ] Scenario Comparison: Allow the user to save multiple portfolios and compare them side-by-side against the same MiFID profile, highlighting which configuration is best aligned.
+
+[ ] Sensitivity Analysis: Show how the traffic light changes as a single asset's weight varies (e.g. "If you increase BTC from 10% to 20%, the delta moves from +0.3 to +1.8").
+
 ## 📥 Phase 2.5: Smart Portfolio Import
 [ ] Smart CSV Parser: Implement an intelligent parser for portfolio CSV uploads, capable of automatically recognizing export formats from major banking apps (e.g. Fineco, Directa, Degiro, Interactive Brokers). Evaluate using an LLM to infer column mappings (ticker, quantity, market value) when the format is non-standard.
 
-## 🚀 Phase 3: Infrastructure & Production Deployment
+## 🚀 Phase 3: Infrastructure & Deployment
 [ ] Dependency Freeze: Generate a clean requirements.txt (removing unused libraries) to guarantee environment reproducibility.
 
 [ ] Dockerization: Write a Dockerfile to containerize the application and make it OS-agnostic.
@@ -31,10 +41,14 @@
 
 [ ] Public Deployment: Publish the application on a Cloud platform (e.g. Streamlit Community Cloud, Heroku or AWS EC2) to make it accessible via URL.
 
-## 🔌 Phase 4: Business Integrations (Long Term)
+## 🔌 Phase 4: Business Integrations
 [ ] Open Banking API: Integrate a provider (e.g. Tink, Plaid) for automatic ingestion of securities positions directly from the user's bank account.
 
 [ ] REST API for Report: Expose an API endpoint (e.g. FastAPI) allowing third-party systems to invoke the RiskAlign pipeline and download the alignment report in JSON or PDF format, enabling integration with CRMs, advisory platforms, and external applications.
 
 ## ✨ Nice to Have
 [ ] Portfolio Geographic Map: Display a choropleth world heatmap showing the geographic distribution of the portfolio. For individual stocks, derive the country from the exchange or headquarters (via yfinance). For common ETFs, maintain a static dictionary with the geographic breakdown. Render with Plotly choropleth integrated in Streamlit.
+
+[ ] Drawdown Backtesting: Given the current portfolio, show the real historical max drawdown (not just parametric VaR) to make past risk tangible.
+
+[ ] Analysis History: Save generated reports with timestamps, so the user can track how risk evolves over time as the portfolio changes.
