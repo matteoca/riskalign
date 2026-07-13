@@ -3,3 +3,6 @@
 
 # Base currency for FX risk conversion
 base_currency: "EUR"
+
+# EWMA (RiskMetrics) decay factor: 0.94 = standard RiskMetrics daily
+ewma_lambda: 0.94

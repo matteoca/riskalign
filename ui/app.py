@@ -334,7 +334,10 @@ with tab3:
                             
                     with col2:
                         st.info("📈 **Rischio Reale del Portafoglio**")
-                        st.metric("Volatilità Annualizzata", f"{quant['volatility_analysis']['actual_volatility']*100:.2f}%")
+                        vol_data = quant['volatility_analysis']
+                        st.metric("Volatilità Storica (5Y)", f"{vol_data['actual_volatility']*100:.2f}%")
+                        if 'ewma_volatility' in vol_data:
+                            st.metric("Volatilità EWMA (RiskMetrics)", f"{vol_data['ewma_volatility']*100:.2f}%")
                         var_abs = quant['var_analysis']['var_absolute']
                         var_pct = quant['var_analysis']['var_percentage'] * 100
                         st.metric("VaR Parametrico Mensile (95%)", f"€ {var_abs:,.2f} ({var_pct:.2f}%)")

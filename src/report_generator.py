@@ -98,7 +98,9 @@ def generate_pdf_report(report: Dict[str, Any], portfolio_weights: Dict[str, flo
     _section_title(pdf, "2. Rischio Quantitativo del Portafoglio")
     pdf.set_font("Helvetica", "", 11)
     pdf.cell(0, 7, f"Controvalore Totale: EUR {portfolio_value:,.2f}", new_x="LMARGIN", new_y="NEXT")
-    pdf.cell(0, 7, f"Volatilita' Annualizzata: {vol_analysis['actual_volatility']*100:.2f}%", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 7, f"Volatilita' Storica (5Y): {vol_analysis['actual_volatility']*100:.2f}%", new_x="LMARGIN", new_y="NEXT")
+    if 'ewma_volatility' in vol_analysis:
+        pdf.cell(0, 7, f"Volatilita' EWMA (RiskMetrics, lambda={vol_analysis.get('ewma_lambda', 0.94)}): {vol_analysis['ewma_volatility']*100:.2f}%", new_x="LMARGIN", new_y="NEXT")
     pdf.cell(0, 7, f"Volatilita' Naive (senza diversificazione): {vol_analysis['naive_volatility']*100:.2f}%", new_x="LMARGIN", new_y="NEXT")
     pdf.cell(0, 7, f"Beneficio Diversificazione: {vol_analysis['diversification_benefit']*100:.2f}%", new_x="LMARGIN", new_y="NEXT")
     pdf.cell(0, 7, f"VaR Parametrico Mensile (95%): EUR {var_analysis['var_absolute']:,.2f} ({var_analysis['var_percentage']*100:.2f}%)", new_x="LMARGIN", new_y="NEXT")

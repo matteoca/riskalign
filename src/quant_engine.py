@@ -120,28 +120,18 @@ def compute_portfolio_volatility(log_returns: pd.DataFrame, weight_dict: Dict[st
     """
     Computes annualized individual volatilities, naive portfolio volatility,
     actual portfolio volatility (using covariance matrix), and the diversification benefit.
-    
-    :param log_returns: DataFrame of daily log returns
-    :param weight_dict: Dictionary mapping tickers to their percentage weights (0.0 to 1.0)
-    :return: Dictionary containing key risk metrics
     """
-    # Align weights array exactly with the column order of the log_returns DataFrame
     columns = log_returns.columns
     weights = np.array([weight_dict[col] for col in columns])
     
-    # Calculate individual annualized volatilities (assuming 252 trading days)
     individual_annual_vols = log_returns.std() * np.sqrt(252)
-    
-    # Calculate Naive Volatility (weighted sum of individual risks)
     naive_volatility = np.sum(weights * individual_annual_vols.values)
     
-    # Calculate Actual Volatility using matrix algebra: W^T * Sigma * W
     cov_matrix_daily = log_returns.cov()
     cov_matrix_annual = cov_matrix_daily * 252
     portfolio_variance = np.dot(weights.T, np.dot(cov_matrix_annual, weights))
     actual_volatility = np.sqrt(portfolio_variance)
     
-    # Calculate the diversification benefit
     diversification_benefit = naive_volatility - actual_volatility
     
     return {
@@ -149,6 +139,37 @@ def compute_portfolio_volatility(log_returns: pd.DataFrame, weight_dict: Dict[st
         "naive_volatility": naive_volatility,
         "diversification_benefit": diversification_benefit,
         "individual_volatilities": individual_annual_vols.to_dict()
+    }
+
+
+def compute_ewma_volatility(log_returns: pd.DataFrame, weight_dict: Dict[str, float],
+                            ewma_lambda: float = None) -> Dict[str, float]:
+    """
+    Computes annualized portfolio volatility using RiskMetrics EWMA.
+    Gives more weight to recent observations (default lambda=0.94).
+    """
+    if ewma_lambda is None:
+        ewma_lambda = load_engine_config().get("ewma_lambda", 0.94)
+
+    columns = log_returns.columns
+    weights = np.array([weight_dict[col] for col in columns])
+
+    # Portfolio daily returns
+    port_returns = (log_returns.values @ weights)
+
+    # EWMA variance recursion
+    ewma_var = np.zeros(len(port_returns))
+    ewma_var[0] = port_returns[0] ** 2
+    for t in range(1, len(port_returns)):
+        ewma_var[t] = ewma_lambda * ewma_var[t - 1] + (1 - ewma_lambda) * port_returns[t] ** 2
+
+    # Latest EWMA daily vol, annualized
+    current_daily_vol = np.sqrt(ewma_var[-1])
+    ewma_annual_vol = current_daily_vol * np.sqrt(252)
+
+    return {
+        "ewma_volatility": ewma_annual_vol,
+        "ewma_lambda": ewma_lambda
     }
 
 def compute_parametric_var(actual_volatility: float, portfolio_value: float, 
@@ -242,6 +263,8 @@ def run_quantitative_analysis(weight_dict: Dict[str, float], portfolio_value: fl
     # 4. Run the rest of the pipeline with the cleaned data
     log_returns = calculate_log_returns(prices_df)
     risk_metrics = compute_portfolio_volatility(log_returns, active_weights)
+    ewma_metrics = compute_ewma_volatility(log_returns, active_weights)
+    risk_metrics.update(ewma_metrics)
     var_parametric = compute_parametric_var(risk_metrics["actual_volatility"], portfolio_value)
     var_historical = compute_historical_var(log_returns, active_weights, portfolio_value)
     
