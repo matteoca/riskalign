@@ -1,0 +1,5 @@
+# RiskAlign Engine Configuration
+# These defaults can be overridden per-request via API or frontend.
+
+# Base currency for FX risk conversion
+base_currency: "EUR"

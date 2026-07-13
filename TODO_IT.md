@@ -4,7 +4,7 @@ Questa roadmap riflette la transizione di RiskAlign da semplice calcolatore a **
 
 ## ⚙️ Livello 1: Risk Engine (Motore Quantitativo Core)
 L'obiettivo di questo livello è calcolare le metriche dure del portafoglio.
-- [ ] **Gestione Rischio Valutario (FX Risk):** Implementare una conversione automatica in Euro per gli asset quotati in USD, per riflettere la reale volatilità subita dall'investitore europeo[cite: 2].
+- [x] **Gestione Rischio Valutario (FX Risk):** Implementare una conversione automatica in Euro per gli asset quotati in USD, per riflettere la reale volatilità subita dall'investitore europeo[cite: 2].
 - [ ] **Evoluzione del Value at Risk (VaR):** Passare dal VaR Parametrico al VaR Storico o a una simulazione Monte Carlo, per catturare meglio i "Cigni Neri" (fat tails)[cite: 2].
 - [ ] **Volatilità Dinamica (EWMA):** Implementare una media mobile esponenziale per dare maggior peso agli eventi di mercato recenti[cite: 2].
 - [ ] **Stress Testing Predefiniti:** Modulo per simulare scenari storici specifici sul portafoglio (es. "Come si sarebbe comportato durante il crollo Covid del 2020?")[cite: 2].

@@ -4,8 +4,63 @@
 import yfinance as yf
 import numpy as np
 import pandas as pd
+import yaml
+from pathlib import Path
 from scipy.stats import norm
 from typing import Dict, Any, List
+
+_currency_cache: Dict[str, str] = {}
+_CONFIG_PATH = Path(__file__).resolve().parent.parent / "config" / "engine.yaml"
+
+def load_engine_config() -> Dict[str, Any]:
+    """Loads engine defaults from config/engine.yaml."""
+    with open(_CONFIG_PATH, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+def get_ticker_currency(ticker: str) -> str:
+    """Returns the trading currency of a ticker (cached)."""
+    if ticker not in _currency_cache:
+        try:
+            info = yf.Ticker(ticker).info
+            _currency_cache[ticker] = info.get("currency", "USD").upper()
+        except Exception:
+            _currency_cache[ticker] = "USD"
+    return _currency_cache[ticker]
+
+
+def convert_prices_to_base(prices_df: pd.DataFrame, tickers: List[str],
+                           base_currency: str, start_date: str, end_date: str) -> pd.DataFrame:
+    """
+    Converts prices of foreign-currency assets into the investor's base currency.
+    Only fetches FX rates for currencies that differ from base_currency.
+    """
+    currencies = {t: get_ticker_currency(t) for t in tickers if t in prices_df.columns}
+    foreign_currencies = set(c for c in currencies.values() if c != base_currency)
+
+    if not foreign_currencies:
+        return prices_df
+
+    # Download FX rates (e.g. EURUSD=X gives how many USD per 1 EUR)
+    fx_pairs = {c: f"{base_currency}{c}=X" for c in foreign_currencies}
+    fx_tickers = list(fx_pairs.values())
+    fx_data = yf.download(fx_tickers, start=start_date, end=end_date, progress=False)
+
+    if fx_data.empty:
+        return prices_df
+
+    fx_close = fx_data['Close'] if len(fx_tickers) > 1 else fx_data['Close'].to_frame(name=fx_tickers[0])
+    fx_close = fx_close.ffill().bfill()
+
+    converted = prices_df.copy()
+    for ticker, ccy in currencies.items():
+        if ccy != base_currency:
+            pair = fx_pairs[ccy]
+            if pair in fx_close.columns:
+                # EURUSD=X = USD per 1 EUR → divide asset price by rate to get EUR
+                rate = fx_close[pair].reindex(converted.index, method='ffill')
+                converted[ticker] = converted[ticker] / rate
+
+    return converted
 
 def download_portfolio_data(tickers: List[str], start_date: str, end_date: str) -> tuple[pd.DataFrame, List[str]]:
     """
@@ -126,11 +181,16 @@ def compute_value_at_risk(actual_volatility: float, portfolio_value: float,
 
 def run_quantitative_analysis(weight_dict: Dict[str, float], portfolio_value: float, 
                               start_date: str, end_date: str,
-                              prices_df: pd.DataFrame = None) -> Dict[str, Any]:
+                              prices_df: pd.DataFrame = None,
+                              base_currency: str = None) -> Dict[str, Any]:
     """
     Orchestrator function that executes the full quantitative pipeline.
     If prices_df is provided, skips the download step (used for caching).
+    Converts foreign-currency assets to base_currency before computing returns.
+    base_currency defaults to config/engine.yaml value if not provided.
     """
+    if base_currency is None:
+        base_currency = load_engine_config()["base_currency"]
     tickers = list(weight_dict.keys())
     
     # 1. Download data (or use cached), collecting any tickers dropped due to missing data
@@ -142,17 +202,20 @@ def run_quantitative_analysis(weight_dict: Dict[str, float], portfolio_value: fl
         prices_df = prices_df.drop(columns=null_tickers)
         dropped_tickers = null_tickers
 
-    # 2. Rebuild weight_dict excluding dropped tickers and renormalize to sum to 1.0
+    # 2. FX conversion: convert foreign-currency prices to base currency
+    prices_df = convert_prices_to_base(prices_df, tickers, base_currency, start_date, end_date)
+
+    # 3. Rebuild weight_dict excluding dropped tickers and renormalize to sum to 1.0
     active_weights = {t: w for t, w in weight_dict.items() if t not in dropped_tickers}
     total_weight = sum(active_weights.values())
     active_weights = {t: w / total_weight for t, w in active_weights.items()}
 
-    # 3. Run the rest of the pipeline with the cleaned data
+    # 4. Run the rest of the pipeline with the cleaned data
     log_returns = calculate_log_returns(prices_df)
     risk_metrics = compute_portfolio_volatility(log_returns, active_weights)
     var_metrics = compute_value_at_risk(risk_metrics["actual_volatility"], portfolio_value)
     
-    # 4. Package all outputs, including alerts for dropped tickers
+    # 5. Package all outputs, including alerts for dropped tickers
     return {
         "volatility_analysis": risk_metrics,
         "var_analysis": var_metrics,
