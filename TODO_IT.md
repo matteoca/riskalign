@@ -1,54 +1,43 @@
-## 🛠️ Fase 1: Ottimizzazione Tecnica e UX
-[x] Implementare il Caching dei Dati: Attualmente, se l'utente cambia una risposta del questionario MiFID, la dashboard ricarica i dati da yfinance. Usare @st.cache_data per memorizzare i prezzi scaricati ed evitare chiamate API ridondanti (velocizza l'app del 90%).
+# 🗺️ RiskAlign: Sviluppo & Roadmap (Architettura B2B a 4 Livelli)
 
-[x] Esportazione PDF: Aggiungere un bottone nella UI (Tab 3) per generare e scaricare un report in PDF pulito e formattato, fondamentale per l'uso B2B (il consulente che consegna il documento al cliente).
+Questa roadmap riflette la transizione di RiskAlign da semplice calcolatore a **Motore di Risk Intelligence Componibile**, pensato per integrarsi nei processi di consulenti, banche e wealth manager.
 
-[ ] Cache del Profilo Utente: Salvare il profilo MiFID compilato in sessione o su file locale, così che l'utente non debba ricompilare il questionario a ogni aggiornamento della pagina.
+## ⚙️ Livello 1: Risk Engine (Motore Quantitativo Core)
+L'obiettivo di questo livello è calcolare le metriche dure del portafoglio.
+- [ ] **Gestione Rischio Valutario (FX Risk):** Implementare una conversione automatica in Euro per gli asset quotati in USD, per riflettere la reale volatilità subita dall'investitore europeo[cite: 2].
+- [ ] **Evoluzione del Value at Risk (VaR):** Passare dal VaR Parametrico al VaR Storico o a una simulazione Monte Carlo, per catturare meglio i "Cigni Neri" (fat tails)[cite: 2].
+- [ ] **Volatilità Dinamica (EWMA):** Implementare una media mobile esponenziale per dare maggior peso agli eventi di mercato recenti[cite: 2].
+- [ ] **Stress Testing Predefiniti:** Modulo per simulare scenari storici specifici sul portafoglio (es. "Come si sarebbe comportato durante il crollo Covid del 2020?")[cite: 2].
+- [ ] **Backtesting del Drawdown:** Dato il portafoglio attuale, estrarre e mostrare il max drawdown storico reale per rendere tangibile il rischio vissuto in passato[cite: 2].
 
-[ ] Barra di Progresso Questionario: Mostrare all'utente a che punto si trova nella compilazione (es. "Domanda 8 di 15 - Pilastro: Situazione Finanziaria") per ridurre il tasso di abbandono.
+## 🧠 Livello 2: Behaviour Engine (Profilazione e Comportamento)
+Andare oltre la compliance MiFID standard per mappare la vera tolleranza psicologica.
+- [x] **Ampliamento Domande & Scoring Non Lineare:** Aggiunte domande per pilastro con pesi differenziati per maggiore discriminazione[cite: 2].
+- [x] **Validazione Incoerenze:** Implementato modulo di consistency check per rilevare risposte contraddittorie[cite: 2].
+- [ ] **Integrazione Bias Comportamentali:** Aggiungere metriche per misurare esplicitamente l'avversione alle perdite (Loss Aversion) e la probabilità di *panic selling*.
+- [ ] **Cache del Profilo Utente:** Salvare il profilo compilato in sessione così che l'utente non debba ricompilarlo a ogni aggiornamento della pagina[cite: 2].
 
-[ ] Riepilogo Profilo nel Tab Analisi: Prima di lanciare il calcolo, mostrare un mini-sommario del profilo MiFID calcolato (SRI, medie per pilastro) così l'utente ha chiaro il suo punto di partenza senza tornare al tab 1.
+## 🎯 Livello 3: Matching Engine (Allineamento e KPI)
+Il cuore del vantaggio competitivo: trasformare rischio e comportamento in una singola metrica di coerenza.
+- [ ] **Risk Alignment Score (0-100):** Convertire l'attuale calcolo del "Delta" in un indice normalizzato da 0 a 100 (es. 95 = perfetto, 40 = fuori profilo) da usare come indicatore di business principale.
+- [ ] **Confronto tra Scenari:** Permettere all'utente di salvare più portafogli e confrontarli side-by-side sullo stesso profilo MiFID, evidenziando quale configurazione ha uno *Score* migliore[cite: 2].
+- [ ] **Storico delle Analisi:** Salvare i report generati con timestamp, per tracciare come evolve l'allineamento nel tempo se si modifica il portafoglio[cite: 2].
 
-[ ] Gestione Rischio Valutario (FX Risk): Attualmente i calcoli assumono che tutti gli asset siano nella valuta di base. Implementare una conversione automatica in Euro per gli asset quotati in USD, per riflettere la reale volatilità subita dall'investitore europeo.
+## 🤖 Livello 4: AI Copilot (Intelligence Generativa)
+Usare l'LLM non per calcolare, ma per interpretare e spiegare i dati quantitativi al cliente.
+- [ ] **Generazione Insight in Linguaggio Naturale:** Integrare un LLM che prenda in input i JSON del Risk Engine e generi un paragrafo testuale (es. "Il profilo è Moderato, ma la concentrazione Tech porta il rischio a Dinamico").
+- [ ] **What-If Analysis & Azioni Correttive:** Permettere all'LLM di suggerire la mossa successiva (es. "Per tornare a uno score di 90, ridurre l'azionario del 10%"). Sostituisce e potenzia la classica *Sensitivity Analysis*[cite: 2].
 
-## 📋 Fase 1.5: Potenziamento Questionario MiFID
-[x] Ampliamento Domande: Aggiungere almeno 2 domande per pilastro per migliorare la granularità della profilazione, mantenendo il questionario snello e non oneroso per l'utente.
+## 🔌 Infrastruttura & Data Ingestion (L'Architettura API-First)
+Rendere il motore "headless" e integrabile da terze parti (reti B2B).
+- [ ] **Sviluppo Motore Headless (API REST):** Trasformare l'attuale backend in endpoint (es. FastAPI) che riceve JSON e restituisce l'Alignment Score e le metriche. Il frontend Streamlit diventerà solo uno dei client di questa API[cite: 2].
+- [ ] **Smart CSV Parser:** Implementare un parser intelligente (potenzialmente guidato da LLM) in grado di riconoscere e mappare automaticamente i formati di export delle principali app bancarie[cite: 2].
+- [ ] **Integrazione Open Banking:** Collegare un provider (es. Tink, Plaid) per l'ingestione automatica dei titoli bancari[cite: 2].
+- [ ] **Deployment e Messa in Produzione:** Creazione file `requirements.txt` pulito, Dockerizzazione dell'app e configurazione GitHub Actions per test CI[cite: 2].
 
-[x] Scoring Non Lineare: Sostituire la media aritmetica intra-pilastro con un sistema di pesi differenziati per domanda, dando più rilevanza alle domande con maggiore potere discriminante (es. capacità di perdita > orizzonte temporale).
-
-[x] Validazione Incoerenze: Implementare un modulo di consistency check che rilevi risposte contraddittorie (es. "non ho mai investito" + "faccio trading giornaliero con derivati") e segnali un warning all'utente o al consulente.
-
-## 📊 Fase 2: Potenziamento Motore e Analisi Avanzate
-[ ] Evoluzione del Value at Risk (VaR): Passare dal VaR Parametrico (che assume una distribuzione Normale dei rendimenti) al VaR Storico o a una simulazione Monte Carlo, per catturare meglio i "Cigni Neri" (fat tails).
-
-[ ] Volatilità Dinamica (EWMA): Implementare una media mobile esponenziale per dare maggior peso agli eventi di mercato recenti rispetto a quelli di 5 anni fa.
-
-[ ] Stress Testing Predefiniti: Inserire un modulo per simulare scenari storici specifici sul portafoglio (es. "Come si sarebbe comportato durante il crollo Covid del 2020 o l'inflazione del 2022?").
-
-[ ] Confronto tra Scenari: Permettere all'utente di salvare più portafogli e confrontarli side-by-side sullo stesso profilo MiFID, evidenziando quale configurazione è più allineata.
-
-[ ] Sensitivity Analysis: Mostrare come cambia il semaforo al variare del peso di un singolo asset (es. "Se aumenti BTC dal 10% al 20%, il delta passa da +0.3 a +1.8").
-
-## 📥 Fase 2.5: Smart Import Portafoglio
-[ ] Smart CSV Parser: Implementare un parser intelligente per il caricamento del portafoglio da CSV, in grado di riconoscere automaticamente i formati di export delle principali app bancarie (es. Fineco, Directa, Degiro, Interactive Brokers). Valutare l'uso di un LLM per inferire la mappatura delle colonne (ticker, quantità, controvalore) quando il formato non è standard.
-
-## 🚀 Fase 3: Infrastruttura e Deployment
-[ ] Congelamento delle Dipendenze: Generare un file requirements.txt pulito (rimuovendo le librerie non usate) per garantire la riproducibilità dell'ambiente.
-
-[ ] Dockerizzazione: Scrivere un Dockerfile per incapsulare l'applicazione e renderla agnostica rispetto al sistema operativo.
-
-[ ] Continuous Integration (CI): Configurare GitHub Actions per far girare in automatico la suite di test (pytest) a ogni nuovo commit.
-
-[ ] Deployment Pubblico: Pubblicare l'applicazione su una piattaforma Cloud (es. Streamlit Community Cloud, Heroku o AWS EC2) per renderla accessibile tramite URL.
-
-## 🔌 Fase 4: Integrazioni Business
-[ ] Open Banking API: Integrare un provider (es. Tink, Plaid) per l'ingestione automatica delle posizioni titoli direttamente dal conto corrente dell'utente.
-
-[ ] API REST per Report: Esporre un endpoint API (es. FastAPI) che consenta a sistemi terzi di invocare la pipeline RiskAlign e scaricare il report di allineamento in formato JSON o PDF, abilitando l'integrazione con CRM, piattaforme di consulenza e applicazioni esterne.
-
-## ✨ Nice to Have
-[ ] Mappa Geografica del Portafoglio: Visualizzare una mappa coropletica (world heatmap) che rappresenti la distribuzione geografica del portafoglio. Per le azioni singole, derivare il paese dalla quotazione o dall'headquarter (via yfinance). Per gli ETF più comuni, mantenere un dizionario statico con la breakdown geografica. Visualizzazione con Plotly choropleth integrato in Streamlit.
-
-[ ] Backtesting del Drawdown: Dato il portafoglio attuale, mostrare il max drawdown storico reale (non solo VaR parametrico) per rendere tangibile il rischio vissuto in passato.
-
-[ ] Storico delle Analisi: Salvare i report generati con timestamp, così l'utente può vedere come evolve il rischio nel tempo se modifica il portafoglio.
+## 🖥️ UX & Front-End (Il Client Dimostrativo in Streamlit)
+Migliorare la dashboard che i consulenti useranno durante gli incontri.
+- [x] **Implementare il Caching dei Dati:** Uso di `@st.cache_data` per evitare ricaricamenti di mercato continui[cite: 2].
+- [x] **Esportazione PDF:** Generazione e download di un report PDF pulito per il cliente[cite: 2].
+- [ ] **Barra di Progresso Questionario & Riepilogo:** Mostrare l'avanzamento visivo nel Tab 1 e un recap del profilo nel Tab 3 prima del calcolo[cite: 2].
+- [ ] **Mappa Geografica del Portafoglio:** Visualizzazione Plotly (world heatmap) della scomposizione geografica degli asset azionari[cite: 2].
