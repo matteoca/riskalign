@@ -9,6 +9,13 @@ L'obiettivo di questo livello è calcolare le metriche dure del portafoglio.
 - [ ] **Volatilità Dinamica (EWMA):** Implementare una media mobile esponenziale per dare maggior peso agli eventi di mercato recenti[cite: 2].
 - [ ] **Stress Testing Predefiniti:** Modulo per simulare scenari storici specifici sul portafoglio (es. "Come si sarebbe comportato durante il crollo Covid del 2020?")[cite: 2].
 - [ ] **Backtesting del Drawdown:** Dato il portafoglio attuale, estrarre e mostrare il max drawdown storico reale per rendere tangibile il rischio vissuto in passato[cite: 2].
+- [ ] **Metriche Advisory (per Consulenti):**
+  - [ ] Maximum Drawdown storico (peggior calo peak-to-trough)
+  - [ ] Liquidity Risk (score basato su volume medio di scambio)
+  - [ ] Equity Exposure (% equity vs bond vs commodity vs altro)
+  - [ ] Concentrazione per titolo (Herfindahl-Hirschman Index)
+  - [ ] Concentrazione per settore (via yfinance `sector`)
+  - [ ] Concentrazione geografica (via yfinance `country`)
 
 ## 🧠 Livello 2: Behaviour Engine (Profilazione e Comportamento)
 Andare oltre la compliance MiFID standard per mappare la vera tolleranza psicologica.
