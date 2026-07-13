@@ -337,7 +337,11 @@ with tab3:
                         st.metric("Volatilità Annualizzata", f"{quant['volatility_analysis']['actual_volatility']*100:.2f}%")
                         var_abs = quant['var_analysis']['var_absolute']
                         var_pct = quant['var_analysis']['var_percentage'] * 100
-                        st.metric("VaR Mensile (95%)", f"€ {var_abs:,.2f} ({var_pct:.2f}% del portafoglio)")
+                        st.metric("VaR Parametrico Mensile (95%)", f"€ {var_abs:,.2f} ({var_pct:.2f}%)")
+                        if 'var_historical' in quant:
+                            hvar_abs = quant['var_historical']['var_absolute']
+                            hvar_pct = quant['var_historical']['var_percentage'] * 100
+                            st.metric("VaR Storico Mensile (95%)", f"€ {hvar_abs:,.2f} ({hvar_pct:.2f}%)")
                     
                     st.divider()
                     

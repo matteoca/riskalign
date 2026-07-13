@@ -101,7 +101,10 @@ def generate_pdf_report(report: Dict[str, Any], portfolio_weights: Dict[str, flo
     pdf.cell(0, 7, f"Volatilita' Annualizzata: {vol_analysis['actual_volatility']*100:.2f}%", new_x="LMARGIN", new_y="NEXT")
     pdf.cell(0, 7, f"Volatilita' Naive (senza diversificazione): {vol_analysis['naive_volatility']*100:.2f}%", new_x="LMARGIN", new_y="NEXT")
     pdf.cell(0, 7, f"Beneficio Diversificazione: {vol_analysis['diversification_benefit']*100:.2f}%", new_x="LMARGIN", new_y="NEXT")
-    pdf.cell(0, 7, f"VaR Mensile (95%): EUR {var_analysis['var_absolute']:,.2f} ({var_analysis['var_percentage']*100:.2f}% del portafoglio)", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 7, f"VaR Parametrico Mensile (95%): EUR {var_analysis['var_absolute']:,.2f} ({var_analysis['var_percentage']*100:.2f}%)", new_x="LMARGIN", new_y="NEXT")
+    if 'var_historical' in quant:
+        hvar = quant['var_historical']
+        pdf.cell(0, 7, f"VaR Storico Mensile (95%): EUR {hvar['var_absolute']:,.2f} ({hvar['var_percentage']*100:.2f}%)", new_x="LMARGIN", new_y="NEXT")
     pdf.ln(4)
 
     # --- SEZIONE 3: ESITO ALLINEAMENTO ---

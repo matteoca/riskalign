@@ -151,33 +151,62 @@ def compute_portfolio_volatility(log_returns: pd.DataFrame, weight_dict: Dict[st
         "individual_volatilities": individual_annual_vols.to_dict()
     }
 
-def compute_value_at_risk(actual_volatility: float, portfolio_value: float, 
+def compute_parametric_var(actual_volatility: float, portfolio_value: float, 
                            confidence_level: float = 0.95, time_horizon_days: int = 21) -> Dict[str, float]:
     """
-    Calculates the Parametric Value at Risk (VaR) for a given portfolio value and time horizon.
-    
-    :param actual_volatility: Annualized actual portfolio volatility
-    :param portfolio_value: Total value of the portfolio in nominal currency (e.g., Euros)
-    :param confidence_level: Confidence level (default 95%)
-    :param time_horizon_days: Time horizon in trading days (default 21 days = 1 month)
-    :return: Dictionary with percentage and absolute VaR values
+    Calculates the Parametric Value at Risk (VaR) assuming normal distribution.
     """
-    # Convert annualized volatility back to daily volatility
     daily_volatility = actual_volatility / np.sqrt(252)
-    
-    # Calculate the Z-score for the given confidence level (one-tailed)
     z_score = np.abs(norm.ppf(1 - confidence_level))
-    
-    # Scale daily volatility to the time horizon using the square root of time
     var_percentage = z_score * daily_volatility * np.sqrt(time_horizon_days)
     var_absolute = portfolio_value * var_percentage
     
     return {
+        "method": "parametric",
         "var_percentage": var_percentage,
         "var_absolute": var_absolute,
         "confidence_level": confidence_level,
         "horizon_days": time_horizon_days
     }
+
+
+def compute_historical_var(log_returns: pd.DataFrame, weight_dict: Dict[str, float],
+                           portfolio_value: float, confidence_level: float = 0.95,
+                           time_horizon_days: int = 21) -> Dict[str, float]:
+    """
+    Calculates Historical Simulation VaR using actual portfolio return distribution.
+    Captures fat tails without normality assumptions.
+    """
+    columns = log_returns.columns
+    weights = np.array([weight_dict[col] for col in columns])
+    
+    # Daily portfolio returns (weighted sum)
+    portfolio_daily_returns = (log_returns.values @ weights)
+    
+    # Scale to time horizon using rolling windows if enough data, else sqrt-of-time
+    if len(portfolio_daily_returns) >= time_horizon_days:
+        rolling_returns = pd.Series(portfolio_daily_returns).rolling(time_horizon_days).sum().dropna()
+        var_percentage = -np.percentile(rolling_returns, (1 - confidence_level) * 100)
+    else:
+        daily_var = -np.percentile(portfolio_daily_returns, (1 - confidence_level) * 100)
+        var_percentage = daily_var * np.sqrt(time_horizon_days)
+    
+    var_absolute = portfolio_value * var_percentage
+    
+    return {
+        "method": "historical",
+        "var_percentage": var_percentage,
+        "var_absolute": var_absolute,
+        "confidence_level": confidence_level,
+        "horizon_days": time_horizon_days
+    }
+
+
+# Backward-compatible alias
+def compute_value_at_risk(actual_volatility: float, portfolio_value: float,
+                         confidence_level: float = 0.95, time_horizon_days: int = 21) -> Dict[str, float]:
+    """Legacy wrapper — delegates to compute_parametric_var."""
+    return compute_parametric_var(actual_volatility, portfolio_value, confidence_level, time_horizon_days)
 
 def run_quantitative_analysis(weight_dict: Dict[str, float], portfolio_value: float, 
                               start_date: str, end_date: str,
@@ -213,12 +242,14 @@ def run_quantitative_analysis(weight_dict: Dict[str, float], portfolio_value: fl
     # 4. Run the rest of the pipeline with the cleaned data
     log_returns = calculate_log_returns(prices_df)
     risk_metrics = compute_portfolio_volatility(log_returns, active_weights)
-    var_metrics = compute_value_at_risk(risk_metrics["actual_volatility"], portfolio_value)
+    var_parametric = compute_parametric_var(risk_metrics["actual_volatility"], portfolio_value)
+    var_historical = compute_historical_var(log_returns, active_weights, portfolio_value)
     
     # 5. Package all outputs, including alerts for dropped tickers
     return {
         "volatility_analysis": risk_metrics,
-        "var_analysis": var_metrics,
+        "var_analysis": var_parametric,
+        "var_historical": var_historical,
         "dropped_tickers": dropped_tickers
     }
 
