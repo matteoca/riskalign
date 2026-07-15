@@ -130,8 +130,26 @@ def generate_pdf_report(report: Dict[str, Any], portfolio_weights: Dict[str, flo
         pdf.cell(0, 7, f"  BLOCCO DI EMERGENZA: {match['emergency_brake_reason']}", new_x="LMARGIN", new_y="NEXT")
     pdf.ln(4)
 
-    # --- SEZIONE 4: COMPOSIZIONE PER ASSET CLASS ---
-    _section_title(pdf, "4. Composizione per Classe di Asset")
+    # --- SEZIONE 4: STRESS TEST ---
+    _section_title(pdf, "4. Stress Test Storici")
+    pdf.set_font("Helvetica", "", 11)
+    stress_tests = quant.get('stress_tests', [])
+    if stress_tests:
+        for st_result in stress_tests:
+            if st_result['portfolio_return'] is not None:
+                ret = st_result['portfolio_return'] * 100
+                line = f"{st_result['label']} ({st_result['period']}): {ret:+.2f}%"
+                if st_result['excluded_tickers']:
+                    line += f"  [esclusi: {', '.join(st_result['excluded_tickers'])}]"
+            else:
+                line = f"{st_result['label']}: N/D - {st_result.get('note', '')}"
+            pdf.cell(0, 7, line, new_x="LMARGIN", new_y="NEXT")
+    else:
+        pdf.cell(0, 7, "Nessuno scenario configurato.", new_x="LMARGIN", new_y="NEXT")
+    pdf.ln(4)
+
+    # --- SEZIONE 5: COMPOSIZIONE PER ASSET CLASS ---
+    _section_title(pdf, "5. Composizione per Classe di Asset")
     pdf.set_font("Helvetica", "", 11)
 
     class_weights: Dict[str, float] = {}
@@ -143,8 +161,8 @@ def generate_pdf_report(report: Dict[str, Any], portfolio_weights: Dict[str, flo
         pdf.cell(0, 7, f"  {asset_class}: {weight*100:.1f}%", new_x="LMARGIN", new_y="NEXT")
     pdf.ln(4)
 
-    # --- SEZIONE 5: DETTAGLIO RISCHIO PER SINGOLO ASSET ---
-    _section_title(pdf, "5. Rischiosita' Individuale degli Asset")
+    # --- SEZIONE 6: DETTAGLIO RISCHIO PER SINGOLO ASSET ---
+    _section_title(pdf, "6. Rischiosita' Individuale degli Asset")
     pdf.set_font("Helvetica", "", 10)
 
     # Table header

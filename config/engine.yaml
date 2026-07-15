@@ -6,3 +6,22 @@ base_currency: "EUR"
 
 # EWMA (RiskMetrics) decay factor: 0.94 = standard RiskMetrics daily
 ewma_lambda: 0.94
+
+# Predefined stress test scenarios (historical periods)
+stress_scenarios:
+  - id: "gfc_2008"
+    label: "Crisi Finanziaria Globale 2008"
+    start: "2008-09-01"
+    end: "2009-03-31"
+  - id: "eurozone_2011"
+    label: "Crisi Debito Eurozona 2011"
+    start: "2011-07-01"
+    end: "2011-11-30"
+  - id: "covid_2020"
+    label: "Crollo Covid 2020"
+    start: "2020-02-19"
+    end: "2020-03-23"
+  - id: "rate_hike_2022"
+    label: "Rialzo Tassi 2022"
+    start: "2022-01-01"
+    end: "2022-10-31"

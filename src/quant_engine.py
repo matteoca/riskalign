@@ -172,6 +172,83 @@ def compute_ewma_volatility(log_returns: pd.DataFrame, weight_dict: Dict[str, fl
         "ewma_lambda": ewma_lambda
     }
 
+def compute_stress_tests(tickers: List[str], weight_dict: Dict[str, float],
+                         base_currency: str = None) -> List[Dict[str, Any]]:
+    """
+    Simulates portfolio performance during predefined historical stress scenarios.
+    For each scenario, downloads data for the crisis period and computes weighted return.
+    Tickers without data for a given period are excluded (and reported).
+    """
+    config = load_engine_config()
+    if base_currency is None:
+        base_currency = config["base_currency"]
+    scenarios = config.get("stress_scenarios", [])
+
+    results = []
+    for scenario in scenarios:
+        start, end = scenario["start"], scenario["end"]
+        try:
+            raw = yf.download(tickers, start=start, end=end, progress=False)
+            if raw.empty:
+                results.append({
+                    "id": scenario["id"], "label": scenario["label"],
+                    "period": f"{start} / {end}",
+                    "portfolio_return": None, "excluded_tickers": tickers,
+                    "note": "Nessun dato disponibile per questo periodo."
+                })
+                continue
+
+            prices = raw['Close']
+            if isinstance(prices, pd.Series):
+                prices = prices.to_frame(name=tickers[0])
+            prices = prices.ffill().bfill()
+
+            # Determine which tickers have data in this period
+            available = [t for t in tickers if t in prices.columns and prices[t].notna().sum() > 1]
+            excluded = [t for t in tickers if t not in available]
+
+            if not available:
+                results.append({
+                    "id": scenario["id"], "label": scenario["label"],
+                    "period": f"{start} / {end}",
+                    "portfolio_return": None, "excluded_tickers": excluded,
+                    "note": "Nessun ticker con dati sufficienti per questo periodo."
+                })
+                continue
+
+            # FX conversion
+            prices = convert_prices_to_base(prices[available], available, base_currency, start, end)
+
+            # Renormalize weights for available tickers
+            active_w = {t: weight_dict[t] for t in available}
+            total_w = sum(active_w.values())
+            active_w = {t: w / total_w for t, w in active_w.items()}
+
+            # Compute weighted portfolio return over the period
+            first_prices = prices.iloc[0]
+            last_prices = prices.iloc[-1]
+            ticker_returns = (last_prices - first_prices) / first_prices
+            portfolio_return = sum(active_w[t] * ticker_returns[t] for t in available)
+
+            results.append({
+                "id": scenario["id"],
+                "label": scenario["label"],
+                "period": f"{start} / {end}",
+                "portfolio_return": float(portfolio_return),
+                "excluded_tickers": excluded,
+                "note": None
+            })
+        except Exception:
+            results.append({
+                "id": scenario["id"], "label": scenario["label"],
+                "period": f"{start} / {end}",
+                "portfolio_return": None, "excluded_tickers": tickers,
+                "note": "Errore nel download dei dati per questo scenario."
+            })
+
+    return results
+
+
 def compute_parametric_var(actual_volatility: float, portfolio_value: float, 
                            confidence_level: float = 0.95, time_horizon_days: int = 21) -> Dict[str, float]:
     """
@@ -267,12 +344,14 @@ def run_quantitative_analysis(weight_dict: Dict[str, float], portfolio_value: fl
     risk_metrics.update(ewma_metrics)
     var_parametric = compute_parametric_var(risk_metrics["actual_volatility"], portfolio_value)
     var_historical = compute_historical_var(log_returns, active_weights, portfolio_value)
+    stress_results = compute_stress_tests(tickers, active_weights, base_currency)
     
     # 5. Package all outputs, including alerts for dropped tickers
     return {
         "volatility_analysis": risk_metrics,
         "var_analysis": var_parametric,
         "var_historical": var_historical,
+        "stress_tests": stress_results,
         "dropped_tickers": dropped_tickers
     }
 

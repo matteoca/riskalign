@@ -7,7 +7,7 @@ The goal of this layer is to compute the hard metrics of the portfolio.
 - [x] **FX Risk Management:** Implement automatic EUR conversion for USD-quoted assets to reflect the real volatility experienced by the European investor.
 - [x] **Value at Risk Evolution:** Move from Parametric VaR to Historical VaR or Monte Carlo simulation, to better capture "Black Swan" events (fat tails).
 - [x] **Dynamic Volatility (EWMA):** Implement an exponentially weighted moving average to give more weight to recent market events.  σ²_t = λ·σ²_{t-1} + (1-λ)·r²_t
-- [ ] **Predefined Stress Tests:** Module to simulate specific historical scenarios on the portfolio (e.g. "How would it have performed during the Covid crash of 2020?").
+- [x] **Predefined Stress Tests:** Module to simulate specific historical scenarios on the portfolio (e.g. "How would it have performed during the Covid crash of 2020?").
 - [ ] **Drawdown Backtesting:** Given the current portfolio, extract and display the real historical max drawdown to make past risk tangible.
 - [ ] **Advisory Metrics (for Advisors):**
   - [ ] Historical Maximum Drawdown (worst peak-to-trough decline)

@@ -368,6 +368,29 @@ with tab3:
                     if match['emergency_brake_active']:
                         st.error(f"🛑 **BLOCCO DI EMERGENZA (VaR):** {match['emergency_brake_reason']}")
 
+                    # --- STRESS TEST ---
+                    if quant.get('stress_tests'):
+                        st.divider()
+                        st.markdown("### 💥 Stress Test Storici")
+                        st.caption("Simulazione: come si sarebbe comportato il portafoglio attuale durante crisi passate.")
+                        for st_result in quant['stress_tests']:
+                            if st_result['portfolio_return'] is not None:
+                                ret = st_result['portfolio_return'] * 100
+                                icon = "🔴" if ret < -10 else "🟡" if ret < 0 else "🟢"
+                                st.metric(
+                                    label=f"{icon} {st_result['label']}",
+                                    value=f"{ret:+.2f}%",
+                                    help=f"Periodo: {st_result['period']}"
+                                )
+                                if st_result['excluded_tickers']:
+                                    st.caption(f"  ⚠️ Ticker esclusi (dati non disponibili): {', '.join(st_result['excluded_tickers'])}")
+                            else:
+                                st.metric(
+                                    label=f"⚪ {st_result['label']}",
+                                    value="N/D",
+                                    help=st_result.get('note', '')
+                                )
+
                     # --- DOWNLOAD PDF ---
                     st.divider()
                     pdf_bytes = generate_pdf_report(
