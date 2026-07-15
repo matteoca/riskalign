@@ -59,6 +59,11 @@ with tab1:
     st.markdown("### Questionario di Profilazione")
     st.markdown("Rispondi alle seguenti domande per calcolare il tuo profilo di rischio (SRI).")
     
+    # Barra di progresso
+    total_questions = len(config['questions'])
+    answered = sum(1 for q in config['questions'] if st.session_state.get(q['id']) is not None)
+    st.progress(answered / total_questions, text=f"Progresso: {answered}/{total_questions} domande")
+
     # Inizializziamo il dizionario per salvare le risposte
     if 'user_answers' not in st.session_state:
         st.session_state.user_answers = {}
@@ -287,6 +292,24 @@ with tab2:
 # --- TAB 3: DASHBOARD SEMAFORO ---
 with tab3:
     st.markdown("### Report di Allineamento")
+
+    # --- RIEPILOGO PRE-CALCOLO ---
+    with st.expander("📋 Riepilogo prima del calcolo", expanded=False):
+        col_r1, col_r2 = st.columns(2)
+        with col_r1:
+            st.markdown("**Profilo MiFID**")
+            if st.session_state.get('user_answers'):
+                st.write(f"✅ Questionario compilato ({len(st.session_state.user_answers)} risposte)")
+            else:
+                st.write("❌ Questionario non compilato")
+        with col_r2:
+            st.markdown("**Portafoglio**")
+            if 'portfolio_weights' in st.session_state and st.session_state.portfolio_weights:
+                n_assets = len(st.session_state.portfolio_weights)
+                tot_val = st.session_state.get('portfolio_value', 0)
+                st.write(f"✅ {n_assets} asset | € {tot_val:,.2f}")
+            else:
+                st.write("❌ Nessun asset inserito")
     
     if st.button("🚀 Calcola Rischio e Allineamento", type="primary"):
         if not st.session_state.user_answers:

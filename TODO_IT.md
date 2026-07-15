@@ -46,5 +46,5 @@ Rendere il motore "headless" e integrabile da terze parti (reti B2B).
 Migliorare la dashboard che i consulenti useranno durante gli incontri.
 - [x] **Implementare il Caching dei Dati:** Uso di `@st.cache_data` per evitare ricaricamenti di mercato continui.
 - [x] **Esportazione PDF:** Generazione e download di un report PDF pulito per il cliente.
-- [ ] **Barra di Progresso Questionario & Riepilogo:** Mostrare l'avanzamento visivo nel Tab 1 e un recap del profilo nel Tab 3 prima del calcolo.
+- [x] **Barra di Progresso Questionario & Riepilogo:** Mostrare l'avanzamento visivo nel Tab 1 e un recap del profilo nel Tab 3 prima del calcolo.
 - [x] **Mappa Geografica del Portafoglio:** Visualizzazione Plotly (world heatmap) della scomposizione geografica degli asset azionari.

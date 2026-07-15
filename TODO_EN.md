@@ -46,5 +46,5 @@ Make the engine "headless" and integrable by third parties (B2B networks).
 Improve the dashboard that advisors will use during client meetings.
 - [x] **Implement Data Caching:** Use `@st.cache_data` to avoid continuous market data reloads.
 - [x] **PDF Export:** Generation and download of a clean PDF report for the client.
-- [ ] **Questionnaire Progress Bar & Summary:** Show visual progress in Tab 1 and a profile recap in Tab 3 before calculation.
+- [x] **Questionnaire Progress Bar & Summary:** Show visual progress in Tab 1 and a profile recap in Tab 3 before calculation.
 - [x] **Portfolio Geographic Map:** Plotly visualization (world heatmap) of the geographic breakdown of equity assets.
