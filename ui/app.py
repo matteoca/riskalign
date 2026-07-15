@@ -11,7 +11,7 @@ import plotly.express as px
 # Aggiungiamo la root directory al path per importare i moduli backend
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.main import generate_full_risk_report
-from src.quant_engine import download_portfolio_data
+from src.quant_engine import download_portfolio_data, get_ticker_display_name
 from src.report_generator import generate_pdf_report
 from datetime import date, timedelta
 
@@ -58,11 +58,6 @@ tab1, tab2, tab3 = st.tabs(["📋 1. Profilo utente (MiFID)", "💼 2. Caricamen
 with tab1:
     st.markdown("### Questionario di Profilazione")
     st.markdown("Rispondi alle seguenti domande per calcolare il tuo profilo di rischio (SRI).")
-    
-    # Barra di progresso
-    total_questions = len(config['questions'])
-    answered = sum(1 for q in config['questions'] if st.session_state.get(q['id']) is not None)
-    st.progress(answered / total_questions, text=f"Progresso: {answered}/{total_questions} domande")
 
     # Inizializziamo il dizionario per salvare le risposte
     if 'user_answers' not in st.session_state:
@@ -292,24 +287,6 @@ with tab2:
 # --- TAB 3: DASHBOARD SEMAFORO ---
 with tab3:
     st.markdown("### Report di Allineamento")
-
-    # --- RIEPILOGO PRE-CALCOLO ---
-    with st.expander("📋 Riepilogo prima del calcolo", expanded=False):
-        col_r1, col_r2 = st.columns(2)
-        with col_r1:
-            st.markdown("**Profilo MiFID**")
-            if st.session_state.get('user_answers'):
-                st.write(f"✅ Questionario compilato ({len(st.session_state.user_answers)} risposte)")
-            else:
-                st.write("❌ Questionario non compilato")
-        with col_r2:
-            st.markdown("**Portafoglio**")
-            if 'portfolio_weights' in st.session_state and st.session_state.portfolio_weights:
-                n_assets = len(st.session_state.portfolio_weights)
-                tot_val = st.session_state.get('portfolio_value', 0)
-                st.write(f"✅ {n_assets} asset | € {tot_val:,.2f}")
-            else:
-                st.write("❌ Nessun asset inserito")
     
     if st.button("🚀 Calcola Rischio e Allineamento", type="primary"):
         if not st.session_state.user_answers:
@@ -416,7 +393,8 @@ with tab3:
                                     help=f"Periodo: {st_result['period']}"
                                 )
                                 if st_result['excluded_tickers']:
-                                    st.caption(f"  ⚠️ Ticker esclusi (dati non disponibili): {', '.join(st_result['excluded_tickers'])}")
+                                    excluded_names = [f"{get_ticker_display_name(t)} ({t})" for t in st_result['excluded_tickers']]
+                                    st.caption(f"  ⚠️ Titoli esclusi (dati non disponibili): {', '.join(excluded_names)}")
                             else:
                                 st.metric(
                                     label=f"⚪ {st_result['label']}",
@@ -450,7 +428,9 @@ with tab3:
                             st.metric("Esposizione Bassa Liquidità", f"{adv['low_liquidity_exposure']:.1f}%")
 
                         # --- MAPPA GEOGRAFICA ---
-                        geo_data = {k: v for k, v in adv['country_breakdown'].items() if k != "N/D"}
+                        # Plotly choropleth only works with real country names
+                        _NON_COUNTRY_LABELS = {"N/D", "Global", "Global ex-US", "Europe", "Emerging Markets", "Asia-Pacific"}
+                        geo_data = {k: v for k, v in adv['country_breakdown'].items() if k not in _NON_COUNTRY_LABELS}
                         if geo_data:
                             st.markdown("**🌍 Mappa Geografica del Portafoglio**")
                             geo_df = pd.DataFrame([
@@ -458,10 +438,14 @@ with tab3:
                             ])
                             fig = px.choropleth(
                                 geo_df, locations="Paese", locationmode="country names",
-                                color="Peso", color_continuous_scale="Blues",
+                                color="Peso", color_continuous_scale="YlOrRd",
+                                range_color=[0, geo_df["Peso"].max()],
                                 labels={"Peso": "Peso (%)"},
                             )
-                            fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0}, height=350)
+                            fig.update_layout(
+                                margin={"r": 0, "t": 0, "l": 0, "b": 0}, height=350,
+                                geo=dict(showframe=False, showcoastlines=True, projection_type="natural earth")
+                            )
                             st.plotly_chart(fig, use_container_width=True)
 
                     # --- DOWNLOAD PDF ---
@@ -480,3 +464,29 @@ with tab3:
                         
                 except Exception as e:
                     st.error(f"Si è verificato un errore durante l'elaborazione quantitativa: {e}")
+
+# ==========================================
+# SIDEBAR: STATO AVANZAMENTO (renderizzata dopo i tab)
+# ==========================================
+with st.sidebar:
+    st.markdown("## ⚖️ Stato Analisi")
+
+    # Stato questionario
+    if st.session_state.get('user_answers'):
+        st.success(f"📋 Questionario compilato")
+    else:
+        st.warning("📋 Questionario non compilato")
+
+    # Stato portafoglio
+    if 'portfolio_weights' in st.session_state and st.session_state.portfolio_weights:
+        n_assets = len(st.session_state.portfolio_weights)
+        tot_val = st.session_state.get('portfolio_value', 0)
+        st.success(f"💼 {n_assets} asset | € {tot_val:,.0f}")
+    else:
+        st.warning("💼 Portafoglio vuoto")
+
+    # Readiness check
+    if st.session_state.get('user_answers') and 'portfolio_weights' in st.session_state and st.session_state.portfolio_weights:
+        st.info("✅ Pronto per il calcolo")
+    else:
+        st.caption("⚠️ Completa questionario e portafoglio per procedere")

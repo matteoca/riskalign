@@ -57,7 +57,11 @@ def convert_prices_to_base(prices_df: pd.DataFrame, tickers: List[str],
     if fx_data.empty:
         return prices_df
 
-    fx_close = fx_data['Close'] if len(fx_tickers) > 1 else fx_data['Close'].to_frame(name=fx_tickers[0])
+    fx_close = fx_data['Close']
+    if isinstance(fx_close, pd.Series):
+        fx_close = fx_close.to_frame(name=fx_tickers[0])
+    elif isinstance(fx_close, pd.DataFrame) and len(fx_tickers) == 1 and fx_tickers[0] not in fx_close.columns:
+        fx_close.columns = [fx_tickers[0]]
     fx_close = fx_close.ffill().bfill()
 
     converted = prices_df.copy()
@@ -95,9 +99,11 @@ def download_portfolio_data(tickers: List[str], start_date: str, end_date: str) 
         # Extract 'Close' prices (automatically adjusted in recent yfinance versions)
         portfolio_data = raw_data['Close']
         
-        # If only one ticker is requested, yfinance returns a Series. Convert it back to a DataFrame.
+        # If only one ticker is requested, yfinance may return a Series or a DataFrame with wrong columns
         if isinstance(portfolio_data, pd.Series):
             portfolio_data = portfolio_data.to_frame(name=tickers[0])
+        elif isinstance(portfolio_data, pd.DataFrame) and len(tickers) == 1 and tickers[0] not in portfolio_data.columns:
+            portfolio_data.columns = [tickers[0]]
             
         # Handle missing data across different asset classes (e.g., weekends for Crypto vs Equity)
         # Forward-fill missing prices (hold last known price), then backward-fill any remaining NaNs at the start
@@ -248,6 +254,8 @@ def compute_stress_tests(tickers: List[str], weight_dict: Dict[str, float],
             prices = raw['Close']
             if isinstance(prices, pd.Series):
                 prices = prices.to_frame(name=tickers[0])
+            elif isinstance(prices, pd.DataFrame) and len(tickers) == 1 and tickers[0] not in prices.columns:
+                prices.columns = [tickers[0]]
             prices = prices.ffill().bfill()
 
             # Determine which tickers have data in this period
@@ -354,6 +362,39 @@ def compute_value_at_risk(actual_volatility: float, portfolio_value: float,
     return compute_parametric_var(actual_volatility, portfolio_value, confidence_level, time_horizon_days)
 
 
+def get_ticker_display_name(ticker: str) -> str:
+    """Returns a human-readable name for a ticker (shortName or ticker itself)."""
+    info = _get_ticker_info(ticker)
+    return info.get("shortName") or info.get("longName") or ticker
+
+
+def _resolve_geography(ticker: str, info: Dict) -> str:
+    """
+    Resolves geographic exposure for a ticker.
+    For equities: uses yfinance 'country' field.
+    For ETFs/funds: uses config mapping, then keyword heuristics on longName.
+    """
+    quote_type = info.get("quoteType", "")
+
+    # For equities, yfinance country is reliable
+    if quote_type == "EQUITY":
+        return info.get("country", "N/D")
+
+    # For ETFs/funds: check config mapping first
+    config = load_engine_config()
+    etf_map = config.get("etf_geography", {})
+    if ticker in etf_map:
+        return etf_map[ticker]
+
+    # Keyword heuristic on longName
+    long_name = info.get("longName") or info.get("shortName") or ""
+    for keyword, region in config.get("etf_geography_keywords", {}).items():
+        if keyword.lower() in long_name.lower():
+            return region
+
+    return "N/D"
+
+
 def compute_advisory_metrics(weight_dict: Dict[str, float]) -> Dict[str, Any]:
     """
     Computes advisory-oriented portfolio metrics:
@@ -363,7 +404,6 @@ def compute_advisory_metrics(weight_dict: Dict[str, float]) -> Dict[str, Any]:
     - Concentration by geography
     - Liquidity risk score (based on average daily volume)
     """
-    # Asset class mapping from yfinance quoteType
     _QUOTE_TYPE_MAP = {
         "EQUITY": "Azionario", "ETF": "ETF", "MUTUALFUND": "Fondo",
         "CRYPTOCURRENCY": "Crypto", "CURRENCY": "Forex",
@@ -387,8 +427,8 @@ def compute_advisory_metrics(weight_dict: Dict[str, float]) -> Dict[str, Any]:
         sector = info.get("sector", "N/D")
         sector_weights[sector] = sector_weights.get(sector, 0.0) + weight
 
-        # Country
-        country = info.get("country", "N/D")
+        # Country (with ETF-aware resolution)
+        country = _resolve_geography(ticker, info)
         country_weights[country] = country_weights.get(country, 0.0) + weight
 
         # Liquidity (average daily volume)
