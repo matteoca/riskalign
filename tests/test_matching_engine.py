@@ -46,7 +46,7 @@ def test_var_emergency_brake_triggered():
     assert result["delta"] == 0.5
     assert result["status_color"] == "RED"
     assert result["emergency_brake_active"] is True
-    assert "exceeding your absolute zero-loss tolerance" in result["emergency_brake_reason"]
+    assert "tolleranza dichiarata di zero perdite" in result["emergency_brake_reason"]
 
 def test_var_emergency_brake_cleared():
     """Test that the Emergency Brake does not trigger for high-tolerance users"""

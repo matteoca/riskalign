@@ -5,6 +5,8 @@ import os
 from datetime import date, timedelta
 from typing import Dict, Any
 
+import pandas as pd
+
 # Import the specialized engines
 from src.mifid_engine import calculate_mifid_profile
 from src.quant_engine import run_quantitative_analysis
@@ -14,7 +16,8 @@ def generate_full_risk_report(
     user_answers: Dict[str, str], 
     portfolio_weights: Dict[str, float], 
     portfolio_value: float, 
-    yaml_config_path: str = "config/questionnaire.yaml"
+    yaml_config_path: str = "config/questionnaire.yaml",
+    prices_df: pd.DataFrame = None
 ) -> Dict[str, Any]:
     """
     Master orchestrator function. Executes the MiFID profiling, quantitative risk 
@@ -49,7 +52,8 @@ def generate_full_risk_report(
         weight_dict=portfolio_weights,
         portfolio_value=portfolio_value,
         start_date=start_date.strftime("%Y-%m-%d"),
-        end_date=end_date.strftime("%Y-%m-%d")
+        end_date=end_date.strftime("%Y-%m-%d"),
+        prices_df=prices_df
     )
     
     actual_volatility = quant_results['volatility_analysis']['actual_volatility']
@@ -86,13 +90,18 @@ if __name__ == "__main__":
         "q_exp_education": "a2",
         "q_exp_frequency": "a2",
         "q_exp_derivatives": "a1",
+        "q_exp_duration": "a2",
+        "q_exp_diversification": "a2",
         "q_fin_income_stability": "a2",
         "q_fin_loss_capacity": "a1",  # Critical: Cannot bear losses
         "q_fin_wealth_pct": "a2",
         "q_fin_liquidity_need": "a2",
+        "q_fin_debt_obligations": "a2",
         "q_obj_horizon": "a3",
-        "q_obj_target": "a2",
-        "q_obj_reaction": "a2"
+        "q_obj_target": "a3",
+        "q_obj_reaction": "a2",
+        "q_obj_inflation_fear": "a2",
+        "q_obj_max_acceptable_loss": "a2"
     }
     
     mock_portfolio = {

@@ -1,0 +1,77 @@
+# RiskAlign Engine Configuration
+# These defaults can be overridden per-request via API or frontend.
+
+# Base currency for FX risk conversion
+base_currency: "EUR"
+
+# EWMA (RiskMetrics) decay factor: 0.94 = standard RiskMetrics daily
+ewma_lambda: 0.94
+
+# ETF geographic mapping (Yahoo Finance doesn't expose underlying geography for ETFs)
+# Use English country names for Plotly choropleth compatibility.
+# Regional labels (Global, Europe, etc.) are shown in the text list but not on the map.
+etf_geography:
+  # Global / Regional
+  IE00B4L5Y983: "Global"
+  VWCE.DE: "Global"
+  ACWX: "Global ex-US"
+  IEMG: "Emerging Markets"
+  VT: "Global"
+  VXUS: "Global ex-US"
+  # USA
+  SPY: "United States"
+  QQQ: "United States"
+  CSSPX.MI: "United States"
+  VOO: "United States"
+  IVV: "United States"
+  VTI: "United States"
+  # Europe
+  SEGA.MI: "Europe"
+  MEUD.PA: "Europe"
+  # Bonds
+  TLT: "United States"
+  AGG: "United States"
+  BND: "United States"
+  # Commodity
+  GLD: "Global"
+  SLV: "Global"
+
+# Keyword heuristics for ETF geography (matched against longName)
+etf_geography_keywords:
+  "World": "Global"
+  "All-World": "Global"
+  "Global": "Global"
+  "MSCI World": "Global"
+  "ACWI": "Global"
+  "S&P 500": "United States"
+  "Nasdaq": "United States"
+  "US ": "United States"
+  "U.S.": "United States"
+  "America": "United States"
+  "Europe": "Europe"
+  "Euro": "Europe"
+  "Europ": "Europe"
+  "Emerg": "Emerging Markets"
+  "Japan": "Japan"
+  "China": "China"
+  "Asia": "Asia-Pacific"
+  "Pacific": "Asia-Pacific"
+
+# Predefined stress test scenarios (historical periods)
+stress_scenarios:
+  - id: "gfc_2008"
+    label: "Crisi Finanziaria Globale 2008"
+    start: "2008-09-01"
+    end: "2009-03-31"
+  - id: "eurozone_2011"
+    label: "Crisi Debito Eurozona 2011"
+    start: "2011-07-01"
+    end: "2011-11-30"
+  - id: "covid_2020"
+    label: "Crollo Covid 2020"
+    start: "2020-02-19"
+    end: "2020-03-23"
+  - id: "rate_hike_2022"
+    label: "Rialzo Tassi 2022"
+    start: "2022-01-01"
+    end: "2022-10-31"

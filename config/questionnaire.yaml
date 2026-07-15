@@ -1,6 +1,6 @@
 metadata:
   questionnaire_name: "Questionario MiFID II Istituzionale RiskAlign"
-  version: "2.0"
+  version: "3.0"
   pillars:
     experience:
       weight: 0.20
@@ -15,26 +15,63 @@ metadata:
       weight: 0.35
       description: "Valuta gli obiettivi di investimento, la tolleranza psicologica al rischio e le preferenze."
 
+  # Consistency rules: pairs of answers that are contradictory
+  consistency_rules:
+    - rule_id: "exp_frequency_vs_derivatives"
+      description: "Non è coerente non aver mai operato ma usare regolarmente derivati."
+      condition_a: { question: "q_exp_frequency", answer: "a1" }
+      condition_b: { question: "q_exp_derivatives", answer: "a4" }
+      warning: "Hai dichiarato di non aver mai effettuato operazioni, ma di utilizzare regolarmente strumenti derivati. Verifica le tue risposte."
+
+    - rule_id: "loss_capacity_vs_aggressive_target"
+      description: "Non è coerente non poter sopportare perdite ma volere espansione aggressiva."
+      condition_a: { question: "q_fin_loss_capacity", answer: "a1" }
+      condition_b: { question: "q_obj_target", answer: "a4" }
+      warning: "Hai dichiarato di non poter sopportare alcuna perdita, ma il tuo obiettivo è la massima crescita aggressiva. Queste risposte sono in contraddizione."
+
+    - rule_id: "short_horizon_vs_aggressive_target"
+      description: "Non è coerente avere orizzonte breve e obiettivo aggressivo."
+      condition_a: { question: "q_obj_horizon", answer: "a1" }
+      condition_b: { question: "q_obj_target", answer: "a4" }
+      warning: "Un orizzonte di investimento inferiore a 2 anni è incompatibile con un obiettivo di espansione aggressiva."
+
+    - rule_id: "loss_capacity_vs_reaction_sentinel"
+      description: "Cross-check tra capacità di perdita dichiarata e reazione emotiva."
+      condition_a: { question: "q_fin_loss_capacity", answer: "a1" }
+      condition_b: { question: "q_obj_reaction", answer: "a3" }
+      warning: "Hai dichiarato di non poter sopportare perdite, ma reagiresti a un crollo del 20% comprando a sconto. Queste risposte sembrano incoerenti."
+
+    - rule_id: "no_experience_vs_long_duration"
+      description: "Non è coerente non aver mai investito ma dichiarare oltre 5 anni di gestione attiva."
+      condition_a: { question: "q_exp_frequency", answer: "a1" }
+      condition_b: { question: "q_exp_duration", answer: "a3" }
+      warning: "Hai dichiarato di non aver mai effettuato operazioni, ma di gestire investimenti da oltre 5 anni. Verifica le tue risposte."
+
 questions:
   # ============================================================================
-  # PILASTRO 1: CONOSCENZA ED ESPERIENZA (Peso: 20%)
+  # PILASTRO 1: CONOSCENZA ED ESPERIENZA (Peso inter-pilastro: 20%)
   # ============================================================================
   - id: "q_exp_education"
     pillar: "experience"
-    text: "Qual è il tuo livello di istruzione o la tua professione in ambito economico-finanziario?"
+    intra_weight: 0.20
+    text: "Qual è il tuo livello di istruzione o formazione in ambito economico-finanziario?"
     options:
       - id: "a1"
-        text: "Nessuna formazione o esperienza professionale in ambito finanziario."
+        text: "Nessuna formazione specifica in ambito finanziario."
         score: 1
       - id: "a2"
-        text: "Conoscenza di base (es. letture personali, corsi introduttivi)."
-        score: 3
+        text: "Formazione di base (es. letture personali, corsi introduttivi, webinar)."
+        score: 2
       - id: "a3"
-        text: "Conoscenza avanzata (es. laurea in economia, certificazioni professionali o impiego nel settore)."
+        text: "Formazione intermedia (es. corsi universitari singoli, certificazioni base)."
+        score: 3
+      - id: "a4"
+        text: "Formazione avanzata (es. laurea in economia/finanza, certificazioni professionali, impiego nel settore)."
         score: 5
 
   - id: "q_exp_frequency"
     pillar: "experience"
+    intra_weight: 0.20
     text: "Con quale frequenza hai effettuato operazioni su strumenti finanziari (azioni, obbligazioni, fondi) negli ultimi 3 anni?"
     options:
       - id: "a1"
@@ -44,18 +81,19 @@ questions:
         text: "Raramente (meno di 5 operazioni all'anno)."
         score: 2
       - id: "a3"
-        text: "Moderatamente (operazioni mensili o trimestrali)."
+        text: "Con regolarità (operazioni mensili o trimestrali)."
         score: 4
       - id: "a4"
-        text: "Frequentemente (trading attivo settimanale o giornaliero)."
+        text: "Frequentemente (operazioni settimanali o più)."
         score: 5
 
   - id: "q_exp_derivatives"
     pillar: "experience"
-    text: "Qual è il tuo livello di esperienza con strumenti complessi o a leva (es. Derivati, Opzioni, Criptovalute, Marginazione)?"
+    intra_weight: 0.25
+    text: "Qual è il tuo livello di esperienza con strumenti complessi o a leva (es. Derivati, Opzioni, CFD, Criptovalute, Marginazione)?"
     options:
       - id: "a1"
-        text: "Non ne conosco il funzionamento e non li ho mai negoziati."
+        text: "Non ne conosco il funzionamento."
         score: 1
       - id: "a2"
         text: "Ne comprendo il funzionamento teorico ma non li ho mai negoziati."
@@ -69,129 +107,213 @@ questions:
 
   - id: "q_exp_duration"
     pillar: "experience"
-    text: "Da quanti anni gestisci o monitori attivamente i tuoi investimenti personali?"
+    intra_weight: 0.15
+    text: "Da quanti anni gestisci o monitori attivamente investimenti finanziari personali?"
     options:
       - id: "a1"
-        text: "Meno di 1 anno."
+        text: "Non ho mai gestito investimenti in autonomia."
         score: 1
       - id: "a2"
-        text: "Tra 1 e 5 anni."
-        score: 3
+        text: "Meno di 3 anni."
+        score: 2
       - id: "a3"
-        text: "Più di 5 anni."
+        text: "Tra 3 e 10 anni."
+        score: 4
+      - id: "a4"
+        text: "Più di 10 anni."
+        score: 5
+
+  - id: "q_exp_diversification"
+    pillar: "experience"
+    intra_weight: 0.20
+    text: "Quanto ti è familiare il concetto di diversificazione di portafoglio e il suo effetto sulla riduzione del rischio?"
+    options:
+      - id: "a1"
+        text: "Non so cosa significhi diversificare un portafoglio."
+        score: 1
+      - id: "a2"
+        text: "So che significa non mettere tutto in un unico investimento, ma non saprei come applicarlo."
+        score: 2
+      - id: "a3"
+        text: "Comprendo il principio e cerco di distribuire i miei investimenti tra asset diversi."
+        score: 4
+      - id: "a4"
+        text: "Conosco bene la teoria (correlazione, frontiera efficiente) e la applico consapevolmente."
         score: 5
 
   # ============================================================================
-  # PILASTRO 2: SITUAZIONE FINANZIARIA (Peso: 45%)
+  # PILASTRO 2: SITUAZIONE FINANZIARIA (Peso inter-pilastro: 45%)
   # ============================================================================
   - id: "q_fin_income_stability"
     pillar: "financial_situation"
+    intra_weight: 0.20
     text: "Come descriveresti la stabilità e la prevedibilità della tua principale fonte di reddito?"
     options:
       - id: "a1"
-        text: "Instabile o altamente imprevedibile (es. lavoro stagionale, reddito basato solo su provvigioni)."
+        text: "Instabile o altamente imprevedibile (es. lavoro stagionale, reddito basato solo su provvigioni, disoccupazione)."
         score: 1
       - id: "a2"
-        text: "Moderatamente stabile, con possibili fluttuazioni."
-        score: 3
+        text: "Parzialmente stabile, con possibili fluttuazioni significative."
+        score: 2
       - id: "a3"
-        text: "Altamente stabile e sicura (es. lavoro dipendente a tempo indeterminato, pensione garantita)."
+        text: "Stabile nella maggior parte dei casi, con variazioni contenute."
+        score: 4
+      - id: "a4"
+        text: "Altamente stabile e prevedibile (es. contratto a tempo indeterminato, pensione garantita)."
         score: 5
 
   - id: "q_fin_loss_capacity"
     pillar: "financial_situation"
-    text: "In caso di un grave crollo dei mercati, quale livello di perdita temporanea del capitale investito puoi sopportare senza compromettere il tuo tenore di vita?"
+    intra_weight: 0.30
+    text: "Quale livello di perdita temporanea del capitale investito puoi oggettivamente sopportare senza che il tuo tenore di vita venga compromesso?"
     options:
       - id: "a1"
-        text: "Praticamente nessuna. Non posso permettermi alcuna perdita di capitale."
+        text: "Nessuna. Qualsiasi perdita, anche temporanea, comprometterebbe le mie finanze."
         score: 1
       - id: "a2"
-        text: "Una flessione moderata (fino al 15%) sarebbe gestibile, seppur con stress."
-        score: 3
+        text: "Una flessione contenuta (fino al 10%) sarebbe gestibile con difficoltà."
+        score: 2
       - id: "a3"
-        text: "Una flessione significativa (oltre il 30%), poiché le mie spese essenziali sono coperte da altre entrate."
+        text: "Una flessione moderata (fino al 20%) sarebbe gestibile senza impatti sul mio stile di vita."
+        score: 3
+      - id: "a4"
+        text: "Una flessione significativa (oltre il 30%) non comprometterebbe le mie finanze, poiché le spese essenziali sono coperte da altre fonti."
         score: 5
 
   - id: "q_fin_wealth_pct"
     pillar: "financial_situation"
-    text: "Che percentuale del tuo patrimonio liquido totale (esclusa la prima casa) rappresenta questo specifico investimento?"
+    intra_weight: 0.20
+    text: "Che percentuale del tuo patrimonio liquido totale (esclusa la prima casa e fondi di emergenza) rappresenta questo investimento?"
     options:
       - id: "a1"
-        text: "Una parte predominante (più del 70% della mia liquidità)."
+        text: "La quasi totalità (più del 70%)."
         score: 1
       - id: "a2"
-        text: "Una parte significativa (tra il 30% e il 70%)."
-        score: 3
+        text: "Una parte rilevante (tra il 40% e il 70%)."
+        score: 2
       - id: "a3"
-        text: "Una parte minoritaria (meno del 30% della mia liquidità)."
+        text: "Una parte moderata (tra il 15% e il 40%)."
+        score: 4
+      - id: "a4"
+        text: "Una parte marginale (meno del 15%)."
         score: 5
 
   - id: "q_fin_liquidity_need"
     pillar: "financial_situation"
-    text: "Prevedi di dover prelevare una somma significativa da questo portafoglio per spese importanti (es. acquisto casa, spese mediche) nei prossimi 12-24 mesi?"
+    intra_weight: 0.15
+    text: "Prevedi di dover prelevare una somma significativa da questo portafoglio per spese importanti nei prossimi 24 mesi?"
     options:
       - id: "a1"
-        text: "Sì, avrò sicuramente bisogno di prelevare gran parte o tutto il capitale a breve."
+        text: "Sì, avrò certamente bisogno di gran parte del capitale entro 24 mesi."
         score: 1
       - id: "a2"
-        text: "Possibile, potrei doverne prelevare una piccola parte in caso di imprevisti."
+        text: "Possibile, potrei dover prelevare una parte in caso di imprevisti."
         score: 3
       - id: "a3"
-        text: "No, questi fondi sono destinati esclusivamente a un investimento di lungo termine."
+        text: "No, questi fondi non saranno necessari per almeno 3-5 anni."
+        score: 5
+
+  - id: "q_fin_debt_obligations"
+    pillar: "financial_situation"
+    intra_weight: 0.15
+    text: "Hai attualmente debiti significativi o impegni finanziari ricorrenti (es. mutuo, prestiti, mantenimento) che assorbono una parte rilevante del tuo reddito mensile?"
+    options:
+      - id: "a1"
+        text: "Sì, i miei impegni finanziari assorbono oltre il 50% del mio reddito netto mensile."
+        score: 1
+      - id: "a2"
+        text: "Sì, ma sono gestibili (assorbono tra il 20% e il 50% del reddito)."
+        score: 3
+      - id: "a3"
+        text: "No, ho impegni minimi o nessun debito significativo (meno del 20% del reddito)."
         score: 5
 
   # ============================================================================
-  # PILASTRO 3: OBIETTIVI E PREFERENZE (Peso: 35%)
+  # PILASTRO 3: OBIETTIVI E PREFERENZE (Peso inter-pilastro: 35%)
   # ============================================================================
   - id: "q_obj_horizon"
     pillar: "objectives_and_preferences"
-    text: "Qual è l'orizzonte temporale previsto per questo investimento?"
+    intra_weight: 0.15
+    text: "Qual è l'orizzonte temporale previsto per questo specifico investimento?"
     options:
       - id: "a1"
         text: "Breve termine (meno di 2 anni)."
         score: 1
       - id: "a2"
-        text: "Medio termine (da 2 a 7 anni)."
+        text: "Medio termine (da 2 a 5 anni)."
         score: 3
       - id: "a3"
-        text: "Lungo termine (più di 7 anni)."
+        text: "Medio-lungo termine (da 5 a 10 anni)."
+        score: 4
+      - id: "a4"
+        text: "Lungo termine (oltre 10 anni)."
         score: 5
 
   - id: "q_obj_target"
     pillar: "objectives_and_preferences"
+    intra_weight: 0.25
     text: "Qual è il tuo obiettivo finanziario primario per questo capitale?"
     options:
       - id: "a1"
-        text: "Conservazione del Capitale: voglio proteggere il valore nominale dei miei soldi."
+        text: "Conservazione del Capitale: proteggere il valore nominale, accettando rendimenti minimi."
         score: 1
       - id: "a2"
-        text: "Crescita Bilanciata: voglio superare l'inflazione con un mix di stabilità e crescita."
-        score: 3
+        text: "Reddito Stabile: generare un flusso di entrate periodiche (cedole, dividendi) con bassa volatilità."
+        score: 2
       - id: "a3"
-        text: "Espansione Aggressiva: voglio massimizzare la crescita a lungo termine, accettando forti oscillazioni."
+        text: "Crescita Bilanciata: superare l'inflazione con un equilibrio tra stabilità e crescita."
+        score: 3
+      - id: "a4"
+        text: "Espansione Aggressiva: massimizzare la crescita a lungo termine, accettando forti oscillazioni di breve periodo."
         score: 5
 
   - id: "q_obj_reaction"
     pillar: "objectives_and_preferences"
-    text: "Se il valore del tuo portafoglio scendesse del 20% in un solo mese a causa di un panico di mercato, quale sarebbe la tua reazione?"
+    intra_weight: 0.25
+    text: "Se il valore del tuo portafoglio scendesse del 20% in un solo mese a causa di un panico di mercato, quale sarebbe la tua reazione più probabile?"
     options:
       - id: "a1"
-        text: "Venderei tutto immediatamente per evitare ulteriori perdite."
+        text: "Venderei tutto immediatamente per fermare le perdite."
         score: 1
       - id: "a2"
-        text: "Non farei nulla, ma vivrei la situazione con forte ansia e controllerei i prezzi continuamente."
-        score: 3
+        text: "Venderei una parte per ridurre l'esposizione e limitare il danno."
+        score: 2
       - id: "a3"
-        text: "Lo considererei un normale ciclo di mercato e valuterei di acquistare altri asset a sconto."
+        text: "Non farei nulla, aspetterei il recupero pur con ansia."
+        score: 4
+      - id: "a4"
+        text: "Lo considererei un'opportunità e valuterei di acquistare a prezzi scontati."
         score: 5
 
   - id: "q_obj_inflation_fear"
     pillar: "objectives_and_preferences"
-    text: "Pensando ai tuoi investimenti, quale di questi due rischi ti preoccupa maggiormente?"
+    intra_weight: 0.20
+    text: "Quale di questi due rischi ti preoccupa maggiormente?"
     options:
       - id: "a1"
-        text: "Rischio di Mercato: vedere il mio portafoglio scendere di valore nel breve termine, anche se può recuperare in futuro."
+        text: "Rischio di Mercato: vedere il portafoglio scendere di valore nel breve termine."
         score: 1
       - id: "a2"
-        text: "Rischio di Inflazione: tenere i soldi 'al sicuro' sul conto corrente ma vederne erodere silenziosamente il potere d'acquisto nel tempo."
+        text: "Entrambi mi preoccupano in egual misura."
+        score: 3
+      - id: "a3"
+        text: "Rischio di Inflazione: vedere il potere d'acquisto dei miei risparmi erodersi silenziosamente nel tempo."
+        score: 5
+
+  - id: "q_obj_max_acceptable_loss"
+    pillar: "objectives_and_preferences"
+    intra_weight: 0.15
+    text: "Indipendentemente dalla tua situazione finanziaria, qual è la massima perdita percentuale che saresti psicologicamente disposto ad accettare su questo investimento in un anno solare?"
+    options:
+      - id: "a1"
+        text: "Nessuna perdita: anche un -5% mi causerebbe forte disagio."
+        score: 1
+      - id: "a2"
+        text: "Fino a -10%: accettabile se temporaneo."
+        score: 2
+      - id: "a3"
+        text: "Fino a -20%: fa parte del gioco se l'orizzonte è lungo."
+        score: 4
+      - id: "a4"
+        text: "Oltre -30%: sono consapevole che i mercati possono crollare e sono preparato."
         score: 5

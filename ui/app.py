@@ -6,10 +6,14 @@ import yaml
 import os
 import sys
 import pandas as pd
+import plotly.express as px
 
 # Aggiungiamo la root directory al path per importare i moduli backend
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.main import generate_full_risk_report
+from src.quant_engine import download_portfolio_data, get_ticker_display_name
+from src.report_generator import generate_pdf_report
+from datetime import date, timedelta
 
 # ==========================================
 # CONFIGURAZIONE PAGINA
@@ -29,6 +33,16 @@ def load_config():
     with open(config_path, 'r', encoding='utf-8') as file:
         return yaml.safe_load(file)
 
+@st.cache_data(show_spinner="Download dati di mercato in corso...")
+def fetch_market_data(tickers: tuple):
+    """Cached download of market data. Only re-runs if tickers change."""
+    end_dt = date.today()
+    start_dt = end_dt - timedelta(days=5 * 365)
+    prices_df, dropped = download_portfolio_data(
+        list(tickers), start_dt.strftime("%Y-%m-%d"), end_dt.strftime("%Y-%m-%d")
+    )
+    return prices_df, dropped
+
 config = load_config()
 
 # ==========================================
@@ -38,16 +52,18 @@ st.title("⚖️ RiskAlign")
 st.subheader("Allineamento algoritmico tra Profilo MiFID e Rischio Quantitativo")
 
 # Creiamo i tab per separare il flusso logico
-tab1, tab2, tab3 = st.tabs(["📋 1. Profilo (MiFID)", "💼 2. Portafoglio", "🚦 3. Analisi e Semaforo"])
+tab1, tab2, tab3 = st.tabs(["📋 1. Profilo utente (MiFID)", "💼 2. Caricamento Portafoglio", "🚦 3. Analisi del Portafoglio"])
 
 # --- TAB 1: QUESTIONARIO MIFID ---
 with tab1:
     st.markdown("### Questionario di Profilazione")
     st.markdown("Rispondi alle seguenti domande per calcolare il tuo profilo di rischio (SRI).")
-    
+
     # Inizializziamo il dizionario per salvare le risposte
     if 'user_answers' not in st.session_state:
         st.session_state.user_answers = {}
+    if 'mifid_submitted' not in st.session_state:
+        st.session_state.mifid_submitted = False
 
     with st.form("mifid_form"):
         for question in config['questions']:
@@ -65,6 +81,7 @@ with tab1:
             
         submit_mifid = st.form_submit_button("Salva Profilo")
         if submit_mifid:
+            st.session_state.mifid_submitted = True
             st.success("Profilo salvato correttamente! Passa alla scheda Portafoglio.")
 
 # --- TAB 2: PORTAFOGLIO (Input in Valore Assoluto) ---
@@ -102,7 +119,9 @@ with tab2:
         "SOL-USD": "Solana",
         "GLD": "SPDR Gold Shares (Oro fisico)",
         "SLV": "iShares Silver Trust (Argento fisico)",
-        "EURUSD=X": "Euro / Dollaro Statunitense (Forex)"
+        "EURUSD=X": "Euro / Dollaro Statunitense (Forex)",
+        "ACWX": "iShares MSCI ACWI ex U.S. (Azionario Globale ex-USA)",
+        "IEMG": "iShares Core MSCI Emerging Markets ETF"
     }
     
     # Inizializzazione DataFrame di sessione se vuoto
@@ -171,10 +190,9 @@ with tab2:
                     format_func=lambda x: f"{x} - {POPULAR_TICKERS[x]}" if x in POPULAR_TICKERS else x
                 )
                 
+                custom_ticker = ""
                 if selected_option == "Altro (Inserimento manuale)":
-                    custom_ticker = st.text_input("Inserisci il Ticker Yahoo Finance (es. TSLA, NVDA):").upper().strip()
-                else:
-                    custom_ticker = ""
+                    custom_ticker = st.text_input("Inserisci il Ticker Yahoo Finance (es. TSLA, NVDA):", key="custom_ticker_input").upper().strip()
                     
             with col_t2:
                 new_amount = st.number_input("Controvalore (€)", min_value=0.0, step=1000.0, format="%.2f")
@@ -182,15 +200,17 @@ with tab2:
             with col_t3:
                 st.write("") 
                 st.write("")
-                if st.button("Aggiungi Asset", use_container_width=True):
-                    final_ticker = custom_ticker if selected_option == "Altro (Inserimento manuale)" else selected_option
-                    
-                    if final_ticker and final_ticker != "Seleziona..." and new_amount > 0:
-                        new_row = pd.DataFrame([{"Ticker": final_ticker, "Controvalore (€)": new_amount}])
-                        st.session_state.portfolio_df = pd.concat([st.session_state.portfolio_df, new_row], ignore_index=True)
-                        st.rerun()
-                    else:
-                        st.warning("Compila tutti i campi prima di aggiungere.")
+                add_clicked = st.button("Aggiungi Asset", use_container_width=True)
+
+        if add_clicked:
+            final_ticker = custom_ticker if selected_option == "Altro (Inserimento manuale)" else selected_option
+            
+            if final_ticker and final_ticker != "Seleziona..." and new_amount > 0:
+                new_row = pd.DataFrame([{"Ticker": final_ticker, "Controvalore (€)": new_amount}])
+                st.session_state.portfolio_df = pd.concat([st.session_state.portfolio_df, new_row], ignore_index=True)
+                st.rerun()
+            else:
+                st.warning("Compila tutti i campi prima di aggiungere.")
 
     st.divider()
 
@@ -277,20 +297,30 @@ with tab3:
         elif 'portfolio_weights' not in st.session_state or not st.session_state.portfolio_weights:
             st.error("Per favore, inserisci almeno un asset nel portafoglio.")
         else:
-            with st.spinner("Analisi quantitativa in corso (download dati da mercato storici)..."):
+            with st.spinner("Elaborazione in corso..."):
                 try:
+                    # Cached market data fetch (only re-downloads if portfolio tickers change)
+                    tickers_tuple = tuple(sorted(st.session_state.portfolio_weights.keys()))
+                    prices_df, _ = fetch_market_data(tickers_tuple)
+
                     # Invocazione del motore unificato (src/main.py)
                     config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'questionnaire.yaml')
                     report = generate_full_risk_report(
                         user_answers=st.session_state.user_answers,
                         portfolio_weights=st.session_state.portfolio_weights,
                         portfolio_value=st.session_state.portfolio_value,
-                        yaml_config_path=config_path
+                        yaml_config_path=config_path,
+                        prices_df=prices_df
                     )
                     
                     mifid = report['mifid_profile']
                     quant = report['quant_metrics']
                     match = report['final_assessment']
+
+                    # --- WARNING INCOERENZE QUESTIONARIO ---
+                    if mifid.get('consistency_warnings'):
+                        for warn in mifid['consistency_warnings']:
+                            st.warning(f"⚠️ **Incoerenza rilevata:** {warn}")
 
                     # --- DISCLAIMER TICKER ESCLUSI ---
                     if quant.get('dropped_tickers'):
@@ -308,8 +338,26 @@ with tab3:
                             
                     with col2:
                         st.info("📈 **Rischio Reale del Portafoglio**")
-                        st.metric("Volatilità Annualizzata", f"{quant['volatility_analysis']['actual_volatility']*100:.2f}%")
-                        st.metric("VaR Mensile (95%)", f"€ {quant['var_analysis']['var_absolute']:,.2f}")
+                        vol_data = quant['volatility_analysis']
+                        st.metric("Volatilità Storica (5Y)", f"{vol_data['actual_volatility']*100:.2f}%")
+                        if 'ewma_volatility' in vol_data:
+                            st.metric("Volatilità EWMA (RiskMetrics)", f"{vol_data['ewma_volatility']*100:.2f}%")
+                        if 'max_drawdown' in quant:
+                            mdd = quant['max_drawdown']
+                            mdd_label = f"{mdd['max_drawdown']*100:.2f}%"
+                            mdd_help = f"Da {mdd['peak_date']} a {mdd['trough_date']}"
+                            if mdd['recovery_date']:
+                                mdd_help += f" | Recupero: {mdd['recovery_date']}"
+                            else:
+                                mdd_help += " | Non ancora recuperato"
+                            st.metric("Max Drawdown (5Y)", mdd_label, help=mdd_help)
+                        var_abs = quant['var_analysis']['var_absolute']
+                        var_pct = quant['var_analysis']['var_percentage'] * 100
+                        st.metric("VaR Parametrico Mensile (95%)", f"€ {var_abs:,.2f} ({var_pct:.2f}%)")
+                        if 'var_historical' in quant:
+                            hvar_abs = quant['var_historical']['var_absolute']
+                            hvar_pct = quant['var_historical']['var_percentage'] * 100
+                            st.metric("VaR Storico Mensile (95%)", f"€ {hvar_abs:,.2f} ({hvar_pct:.2f}%)")
                     
                     st.divider()
                     
@@ -332,6 +380,118 @@ with tab3:
                     
                     if match['emergency_brake_active']:
                         st.error(f"🛑 **BLOCCO DI EMERGENZA (VaR):** {match['emergency_brake_reason']}")
+
+                    # --- STRESS TEST ---
+                    if quant.get('stress_tests'):
+                        st.divider()
+                        st.markdown("### 💥 Stress Test Storici")
+                        st.caption("Simulazione: come si sarebbe comportato il portafoglio attuale durante crisi passate.")
+                        for st_result in quant['stress_tests']:
+                            import math
+                            ret_val = st_result['portfolio_return']
+                            if ret_val is not None and not math.isnan(ret_val):
+                                ret = ret_val * 100
+                                icon = "🔴" if ret < -10 else "🟡" if ret < 0 else "🟢"
+                                st.metric(
+                                    label=f"{icon} {st_result['label']}",
+                                    value=f"{ret:+.2f}%",
+                                    help=f"Periodo: {st_result['period']}"
+                                )
+                                if st_result['excluded_tickers']:
+                                    excluded_names = [f"{get_ticker_display_name(t)} ({t})" for t in st_result['excluded_tickers']]
+                                    st.caption(f"  ⚠️ Titoli esclusi (dati non disponibili): {', '.join(excluded_names)}")
+                            else:
+                                st.metric(
+                                    label=f"⚪ {st_result['label']}",
+                                    value="N/D",
+                                    help=st_result.get('note', '')
+                                )
+
+                    # --- METRICHE ADVISORY ---
+                    if quant.get('advisory_metrics'):
+                        adv = quant['advisory_metrics']
+                        st.divider()
+                        st.markdown("### 📊 Metriche Advisory")
+
+                        col_a1, col_a2 = st.columns(2)
+                        with col_a1:
+                            st.markdown("**Esposizione per Classe di Asset**")
+                            for cls, w in sorted(adv['asset_class_breakdown'].items(), key=lambda x: -x[1]):
+                                st.write(f"- {cls}: {w*100:.1f}%")
+
+                            st.markdown("**Concentrazione per Settore**")
+                            for sec, w in sorted(adv['sector_breakdown'].items(), key=lambda x: -x[1]):
+                                st.write(f"- {sec}: {w*100:.1f}%")
+
+                        with col_a2:
+                            st.markdown("**Concentrazione Geografica**")
+                            for country, w in sorted(adv['country_breakdown'].items(), key=lambda x: -x[1]):
+                                st.write(f"- {country}: {w*100:.1f}%")
+
+                            st.metric("HHI Concentrazione Titoli", f"{adv['hhi_title']:.0f} / 10000",
+                                      help="<1500 = diversificato, 1500-2500 = moderato, >2500 = concentrato")
+                            st.metric("Esposizione Bassa Liquidità", f"{adv['low_liquidity_exposure']:.1f}%")
+
+                        # --- MAPPA GEOGRAFICA ---
+                        # Plotly choropleth only works with real country names
+                        _NON_COUNTRY_LABELS = {"N/D", "Global", "Global ex-US", "Europe", "Emerging Markets", "Asia-Pacific"}
+                        geo_data = {k: v for k, v in adv['country_breakdown'].items() if k not in _NON_COUNTRY_LABELS}
+                        if geo_data:
+                            st.markdown("**🌍 Mappa Geografica del Portafoglio**")
+                            geo_df = pd.DataFrame([
+                                {"Paese": k, "Peso": v * 100} for k, v in geo_data.items()
+                            ])
+                            fig = px.choropleth(
+                                geo_df, locations="Paese", locationmode="country names",
+                                color="Peso", color_continuous_scale="YlOrRd",
+                                range_color=[0, geo_df["Peso"].max()],
+                                labels={"Peso": "Peso (%)"},
+                            )
+                            fig.update_layout(
+                                margin={"r": 0, "t": 0, "l": 0, "b": 0}, height=350,
+                                geo=dict(showframe=False, showcoastlines=True, projection_type="natural earth")
+                            )
+                            st.plotly_chart(fig, use_container_width=True)
+
+                    # --- DOWNLOAD PDF ---
+                    st.divider()
+                    pdf_bytes = generate_pdf_report(
+                        report=report,
+                        portfolio_weights=st.session_state.portfolio_weights,
+                        portfolio_value=st.session_state.portfolio_value
+                    )
+                    st.download_button(
+                        label="📄 Scarica Report PDF",
+                        data=pdf_bytes,
+                        file_name=f"RiskAlign_Report_{date.today().strftime('%Y%m%d')}.pdf",
+                        mime="application/pdf"
+                    )
                         
                 except Exception as e:
                     st.error(f"Si è verificato un errore durante l'elaborazione quantitativa: {e}")
+
+# ==========================================
+# SIDEBAR: STATO AVANZAMENTO (renderizzata dopo i tab)
+# ==========================================
+with st.sidebar:
+    st.markdown("## ⚖️ Stato Analisi")
+
+    # Stato questionario
+    if st.session_state.get('mifid_submitted'):
+        st.success("📋 Questionario compilato")
+    else:
+        st.warning("📋 Questionario non compilato")
+
+    # Stato portafoglio
+    if 'portfolio_weights' in st.session_state and st.session_state.portfolio_weights:
+        n_assets = len(st.session_state.portfolio_weights)
+        tot_val = st.session_state.get('portfolio_value', 0)
+        st.success(f"💼 {n_assets} asset | € {tot_val:,.0f}")
+    else:
+        st.warning("💼 Portafoglio vuoto")
+
+    # Readiness check
+    if st.session_state.get('mifid_submitted') and 'portfolio_weights' in st.session_state and st.session_state.portfolio_weights:
+        st.info("✅ Pronto per il calcolo")
+    else:
+        st.caption("⚠️ Completa questionario e portafoglio per procedere")
