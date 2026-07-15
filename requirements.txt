@@ -19,6 +19,7 @@ yfinance>=0.2.30       # Interface to download historical market data from Yahoo
 # USER INTERFACE (To be used later)
 # ==============================================================================
 streamlit>=1.30.0      # Framework for the interactive web application
+plotly>=5.18.0         # Interactive charts (geographic heatmap, etc.)
 
 # ==============================================================================
 # REPORT GENERATION

@@ -6,6 +6,7 @@ import yaml
 import os
 import sys
 import pandas as pd
+import plotly.express as px
 
 # Aggiungiamo la root directory al path per importare i moduli backend
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -424,6 +425,21 @@ with tab3:
                             st.metric("HHI Concentrazione Titoli", f"{adv['hhi_title']:.0f} / 10000",
                                       help="<1500 = diversificato, 1500-2500 = moderato, >2500 = concentrato")
                             st.metric("Esposizione Bassa Liquidità", f"{adv['low_liquidity_exposure']:.1f}%")
+
+                        # --- MAPPA GEOGRAFICA ---
+                        geo_data = {k: v for k, v in adv['country_breakdown'].items() if k != "N/D"}
+                        if geo_data:
+                            st.markdown("**🌍 Mappa Geografica del Portafoglio**")
+                            geo_df = pd.DataFrame([
+                                {"Paese": k, "Peso": v * 100} for k, v in geo_data.items()
+                            ])
+                            fig = px.choropleth(
+                                geo_df, locations="Paese", locationmode="country names",
+                                color="Peso", color_continuous_scale="Blues",
+                                labels={"Peso": "Peso (%)"},
+                            )
+                            fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0}, height=350)
+                            st.plotly_chart(fig, use_container_width=True)
 
                     # --- DOWNLOAD PDF ---
                     st.divider()
