@@ -5,6 +5,7 @@ import yfinance as yf
 from fpdf import FPDF
 from datetime import date
 from typing import Dict, Any
+from src.quant_engine import get_ticker_display_name
 
 # Cache for asset classification (persists across calls within same session)
 _classification_cache: Dict[str, str] = {}
@@ -143,15 +144,24 @@ def generate_pdf_report(report: Dict[str, Any], portfolio_weights: Dict[str, flo
     pdf.set_font("Helvetica", "", 11)
     stress_tests = quant.get('stress_tests', [])
     if stress_tests:
+        import math
         for st_result in stress_tests:
-            if st_result['portfolio_return'] is not None:
-                ret = st_result['portfolio_return'] * 100
+            ret_val = st_result['portfolio_return']
+            if ret_val is not None and not math.isnan(ret_val):
+                ret = ret_val * 100
                 line = f"{st_result['label']} ({st_result['period']}): {ret:+.2f}%"
+                pdf.set_x(pdf.l_margin)
+                pdf.multi_cell(0, 7, line)
                 if st_result['excluded_tickers']:
-                    line += f"  [esclusi: {', '.join(st_result['excluded_tickers'])}]"
+                    excluded_names = [f"{get_ticker_display_name(t)} ({t})" for t in st_result['excluded_tickers']]
+                    pdf.set_font("Helvetica", "I", 9)
+                    pdf.set_x(pdf.l_margin)
+                    pdf.multi_cell(0, 5, f"Titoli esclusi: {', '.join(excluded_names)}")
+                    pdf.set_font("Helvetica", "", 11)
             else:
-                line = f"{st_result['label']}: N/D - {st_result.get('note', '')}"
-            pdf.cell(0, 7, line, new_x="LMARGIN", new_y="NEXT")
+                note = st_result.get('note', 'Dati insufficienti per questo periodo.')
+                pdf.set_x(pdf.l_margin)
+                pdf.multi_cell(0, 7, f"{st_result['label']}: N/D - {note}")
     else:
         pdf.cell(0, 7, "Nessuno scenario configurato.", new_x="LMARGIN", new_y="NEXT")
     pdf.ln(4)

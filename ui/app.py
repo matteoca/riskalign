@@ -384,8 +384,10 @@ with tab3:
                         st.markdown("### 💥 Stress Test Storici")
                         st.caption("Simulazione: come si sarebbe comportato il portafoglio attuale durante crisi passate.")
                         for st_result in quant['stress_tests']:
-                            if st_result['portfolio_return'] is not None:
-                                ret = st_result['portfolio_return'] * 100
+                            import math
+                            ret_val = st_result['portfolio_return']
+                            if ret_val is not None and not math.isnan(ret_val):
+                                ret = ret_val * 100
                                 icon = "🔴" if ret < -10 else "🟡" if ret < 0 else "🟢"
                                 st.metric(
                                     label=f"{icon} {st_result['label']}",
