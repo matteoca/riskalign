@@ -62,6 +62,8 @@ with tab1:
     # Inizializziamo il dizionario per salvare le risposte
     if 'user_answers' not in st.session_state:
         st.session_state.user_answers = {}
+    if 'mifid_submitted' not in st.session_state:
+        st.session_state.mifid_submitted = False
 
     with st.form("mifid_form"):
         for question in config['questions']:
@@ -79,6 +81,7 @@ with tab1:
             
         submit_mifid = st.form_submit_button("Salva Profilo")
         if submit_mifid:
+            st.session_state.mifid_submitted = True
             st.success("Profilo salvato correttamente! Passa alla scheda Portafoglio.")
 
 # --- TAB 2: PORTAFOGLIO (Input in Valore Assoluto) ---
@@ -474,8 +477,8 @@ with st.sidebar:
     st.markdown("## ⚖️ Stato Analisi")
 
     # Stato questionario
-    if st.session_state.get('user_answers'):
-        st.success(f"📋 Questionario compilato")
+    if st.session_state.get('mifid_submitted'):
+        st.success("📋 Questionario compilato")
     else:
         st.warning("📋 Questionario non compilato")
 
@@ -488,7 +491,7 @@ with st.sidebar:
         st.warning("💼 Portafoglio vuoto")
 
     # Readiness check
-    if st.session_state.get('user_answers') and 'portfolio_weights' in st.session_state and st.session_state.portfolio_weights:
+    if st.session_state.get('mifid_submitted') and 'portfolio_weights' in st.session_state and st.session_state.portfolio_weights:
         st.info("✅ Pronto per il calcolo")
     else:
         st.caption("⚠️ Completa questionario e portafoglio per procedere")
