@@ -338,6 +338,15 @@ with tab3:
                         st.metric("Volatilità Storica (5Y)", f"{vol_data['actual_volatility']*100:.2f}%")
                         if 'ewma_volatility' in vol_data:
                             st.metric("Volatilità EWMA (RiskMetrics)", f"{vol_data['ewma_volatility']*100:.2f}%")
+                        if 'max_drawdown' in quant:
+                            mdd = quant['max_drawdown']
+                            mdd_label = f"{mdd['max_drawdown']*100:.2f}%"
+                            mdd_help = f"Da {mdd['peak_date']} a {mdd['trough_date']}"
+                            if mdd['recovery_date']:
+                                mdd_help += f" | Recupero: {mdd['recovery_date']}"
+                            else:
+                                mdd_help += " | Non ancora recuperato"
+                            st.metric("Max Drawdown (5Y)", mdd_label, help=mdd_help)
                         var_abs = quant['var_analysis']['var_absolute']
                         var_pct = quant['var_analysis']['var_percentage'] * 100
                         st.metric("VaR Parametrico Mensile (95%)", f"€ {var_abs:,.2f} ({var_pct:.2f}%)")
@@ -390,6 +399,31 @@ with tab3:
                                     value="N/D",
                                     help=st_result.get('note', '')
                                 )
+
+                    # --- METRICHE ADVISORY ---
+                    if quant.get('advisory_metrics'):
+                        adv = quant['advisory_metrics']
+                        st.divider()
+                        st.markdown("### 📊 Metriche Advisory")
+
+                        col_a1, col_a2 = st.columns(2)
+                        with col_a1:
+                            st.markdown("**Esposizione per Classe di Asset**")
+                            for cls, w in sorted(adv['asset_class_breakdown'].items(), key=lambda x: -x[1]):
+                                st.write(f"- {cls}: {w*100:.1f}%")
+
+                            st.markdown("**Concentrazione per Settore**")
+                            for sec, w in sorted(adv['sector_breakdown'].items(), key=lambda x: -x[1]):
+                                st.write(f"- {sec}: {w*100:.1f}%")
+
+                        with col_a2:
+                            st.markdown("**Concentrazione Geografica**")
+                            for country, w in sorted(adv['country_breakdown'].items(), key=lambda x: -x[1]):
+                                st.write(f"- {country}: {w*100:.1f}%")
+
+                            st.metric("HHI Concentrazione Titoli", f"{adv['hhi_title']:.0f} / 10000",
+                                      help="<1500 = diversificato, 1500-2500 = moderato, >2500 = concentrato")
+                            st.metric("Esposizione Bassa Liquidità", f"{adv['low_liquidity_exposure']:.1f}%")
 
                     # --- DOWNLOAD PDF ---
                     st.divider()

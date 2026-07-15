@@ -107,6 +107,14 @@ def generate_pdf_report(report: Dict[str, Any], portfolio_weights: Dict[str, flo
     if 'var_historical' in quant:
         hvar = quant['var_historical']
         pdf.cell(0, 7, f"VaR Storico Mensile (95%): EUR {hvar['var_absolute']:,.2f} ({hvar['var_percentage']*100:.2f}%)", new_x="LMARGIN", new_y="NEXT")
+    if 'max_drawdown' in quant:
+        mdd = quant['max_drawdown']
+        mdd_line = f"Max Drawdown: {mdd['max_drawdown']*100:.2f}% (da {mdd['peak_date']} a {mdd['trough_date']})"
+        if mdd['recovery_date']:
+            mdd_line += f" | Recupero: {mdd['recovery_date']}"
+        else:
+            mdd_line += " | Non ancora recuperato"
+        pdf.cell(0, 7, mdd_line, new_x="LMARGIN", new_y="NEXT")
     pdf.ln(4)
 
     # --- SEZIONE 3: ESITO ALLINEAMENTO ---
@@ -148,8 +156,37 @@ def generate_pdf_report(report: Dict[str, Any], portfolio_weights: Dict[str, flo
         pdf.cell(0, 7, "Nessuno scenario configurato.", new_x="LMARGIN", new_y="NEXT")
     pdf.ln(4)
 
-    # --- SEZIONE 5: COMPOSIZIONE PER ASSET CLASS ---
-    _section_title(pdf, "5. Composizione per Classe di Asset")
+    # --- SEZIONE 5: METRICHE ADVISORY ---
+    if quant.get('advisory_metrics'):
+        _section_title(pdf, "5. Metriche Advisory")
+        pdf.set_font("Helvetica", "", 11)
+        adv = quant['advisory_metrics']
+
+        pdf.cell(0, 7, f"HHI Concentrazione Titoli: {adv['hhi_title']:.0f} / 10000", new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(0, 7, f"Esposizione Bassa Liquidita': {adv['low_liquidity_exposure']:.1f}%", new_x="LMARGIN", new_y="NEXT")
+        pdf.ln(2)
+
+        pdf.set_font("Helvetica", "B", 10)
+        pdf.cell(0, 7, "Esposizione per Classe di Asset:", new_x="LMARGIN", new_y="NEXT")
+        pdf.set_font("Helvetica", "", 10)
+        for cls, w in sorted(adv['asset_class_breakdown'].items(), key=lambda x: -x[1]):
+            pdf.cell(0, 6, f"  {cls}: {w*100:.1f}%", new_x="LMARGIN", new_y="NEXT")
+
+        pdf.set_font("Helvetica", "B", 10)
+        pdf.cell(0, 7, "Concentrazione per Settore:", new_x="LMARGIN", new_y="NEXT")
+        pdf.set_font("Helvetica", "", 10)
+        for sec, w in sorted(adv['sector_breakdown'].items(), key=lambda x: -x[1]):
+            pdf.cell(0, 6, f"  {sec}: {w*100:.1f}%", new_x="LMARGIN", new_y="NEXT")
+
+        pdf.set_font("Helvetica", "B", 10)
+        pdf.cell(0, 7, "Concentrazione Geografica:", new_x="LMARGIN", new_y="NEXT")
+        pdf.set_font("Helvetica", "", 10)
+        for country, w in sorted(adv['country_breakdown'].items(), key=lambda x: -x[1]):
+            pdf.cell(0, 6, f"  {country}: {w*100:.1f}%", new_x="LMARGIN", new_y="NEXT")
+        pdf.ln(4)
+
+    # --- SEZIONE 6: COMPOSIZIONE PER ASSET CLASS ---
+    _section_title(pdf, "6. Composizione per Classe di Asset")
     pdf.set_font("Helvetica", "", 11)
 
     class_weights: Dict[str, float] = {}
@@ -161,8 +198,8 @@ def generate_pdf_report(report: Dict[str, Any], portfolio_weights: Dict[str, flo
         pdf.cell(0, 7, f"  {asset_class}: {weight*100:.1f}%", new_x="LMARGIN", new_y="NEXT")
     pdf.ln(4)
 
-    # --- SEZIONE 6: DETTAGLIO RISCHIO PER SINGOLO ASSET ---
-    _section_title(pdf, "6. Rischiosita' Individuale degli Asset")
+    # --- SEZIONE 7: DETTAGLIO RISCHIO PER SINGOLO ASSET ---
+    _section_title(pdf, "7. Rischiosita' Individuale degli Asset")
     pdf.set_font("Helvetica", "", 10)
 
     # Table header

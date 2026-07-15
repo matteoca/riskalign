@@ -8,14 +8,14 @@ The goal of this layer is to compute the hard metrics of the portfolio.
 - [x] **Value at Risk Evolution:** Move from Parametric VaR to Historical VaR or Monte Carlo simulation, to better capture "Black Swan" events (fat tails).
 - [x] **Dynamic Volatility (EWMA):** Implement an exponentially weighted moving average to give more weight to recent market events.  σ²_t = λ·σ²_{t-1} + (1-λ)·r²_t
 - [x] **Predefined Stress Tests:** Module to simulate specific historical scenarios on the portfolio (e.g. "How would it have performed during the Covid crash of 2020?").
-- [ ] **Drawdown Backtesting:** Given the current portfolio, extract and display the real historical max drawdown to make past risk tangible.
-- [ ] **Advisory Metrics (for Advisors):**
-  - [ ] Historical Maximum Drawdown (worst peak-to-trough decline)
-  - [ ] Liquidity Risk (score based on average trading volume)
-  - [ ] Equity Exposure (% equity vs bond vs commodity vs other)
-  - [ ] Concentration by title (Herfindahl-Hirschman Index)
-  - [ ] Concentration by sector (via yfinance `sector`)
-  - [ ] Geographic concentration (via yfinance `country`)
+- [x] **Drawdown Backtesting:** Given the current portfolio, extract and display the real historical max drawdown to make past risk tangible.
+- [x] **Advisory Metrics (for Advisors):**
+  - [x] Historical Maximum Drawdown (worst peak-to-trough decline)
+  - [x] Liquidity Risk (score based on average trading volume)
+  - [x] Equity Exposure (% equity vs bond vs commodity vs other)
+  - [x] Concentration by title (Herfindahl-Hirschman Index)
+  - [x] Concentration by sector (via yfinance `sector`)
+  - [x] Geographic concentration (via yfinance `country`)
 
 ## 🧠 Layer 2: Behaviour Engine (Profiling & Behaviour)
 Go beyond standard MiFID compliance to map the investor's true psychological tolerance.

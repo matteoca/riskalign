@@ -10,6 +10,7 @@ from scipy.stats import norm
 from typing import Dict, Any, List
 
 _currency_cache: Dict[str, str] = {}
+_info_cache: Dict[str, Dict] = {}
 _CONFIG_PATH = Path(__file__).resolve().parent.parent / "config" / "engine.yaml"
 
 def load_engine_config() -> Dict[str, Any]:
@@ -17,14 +18,22 @@ def load_engine_config() -> Dict[str, Any]:
     with open(_CONFIG_PATH, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
+
+def _get_ticker_info(ticker: str) -> Dict:
+    """Returns yfinance .info for a ticker (cached)."""
+    if ticker not in _info_cache:
+        try:
+            _info_cache[ticker] = yf.Ticker(ticker).info or {}
+        except Exception:
+            _info_cache[ticker] = {}
+    return _info_cache[ticker]
+
+
 def get_ticker_currency(ticker: str) -> str:
     """Returns the trading currency of a ticker (cached)."""
     if ticker not in _currency_cache:
-        try:
-            info = yf.Ticker(ticker).info
-            _currency_cache[ticker] = info.get("currency", "USD").upper()
-        except Exception:
-            _currency_cache[ticker] = "USD"
+        info = _get_ticker_info(ticker)
+        _currency_cache[ticker] = info.get("currency", "USD").upper()
     return _currency_cache[ticker]
 
 
@@ -172,6 +181,44 @@ def compute_ewma_volatility(log_returns: pd.DataFrame, weight_dict: Dict[str, fl
         "ewma_lambda": ewma_lambda
     }
 
+def compute_max_drawdown(prices_df: pd.DataFrame, weight_dict: Dict[str, float]) -> Dict[str, Any]:
+    """
+    Computes the maximum drawdown of the weighted portfolio over the full price history.
+    Returns peak-to-trough decline, dates, and recovery date (if recovered).
+    """
+    columns = prices_df.columns
+    weights = np.array([weight_dict[col] for col in columns])
+
+    # Weighted portfolio value series (normalized to 1 at start)
+    returns = prices_df.pct_change().fillna(0)
+    portfolio_returns = (returns.values @ weights)
+    portfolio_value = (1 + pd.Series(portfolio_returns, index=prices_df.index)).cumprod()
+
+    # Running peak
+    running_peak = portfolio_value.cummax()
+    drawdown_series = (portfolio_value - running_peak) / running_peak
+
+    # Max drawdown
+    max_dd = drawdown_series.min()
+    trough_date = drawdown_series.idxmin()
+
+    # Peak date: last peak before trough
+    peak_date = portfolio_value.loc[:trough_date].idxmax()
+
+    # Recovery date: first date after trough where value >= peak value
+    peak_value = portfolio_value.loc[peak_date]
+    post_trough = portfolio_value.loc[trough_date:]
+    recovered = post_trough[post_trough >= peak_value]
+    recovery_date = recovered.index[0] if not recovered.empty and recovered.index[0] != trough_date else None
+
+    return {
+        "max_drawdown": float(max_dd),
+        "peak_date": str(peak_date.date()) if hasattr(peak_date, 'date') else str(peak_date),
+        "trough_date": str(trough_date.date()) if hasattr(trough_date, 'date') else str(trough_date),
+        "recovery_date": str(recovery_date.date()) if recovery_date is not None and hasattr(recovery_date, 'date') else None
+    }
+
+
 def compute_stress_tests(tickers: List[str], weight_dict: Dict[str, float],
                          base_currency: str = None) -> List[Dict[str, Any]]:
     """
@@ -306,6 +353,69 @@ def compute_value_at_risk(actual_volatility: float, portfolio_value: float,
     """Legacy wrapper — delegates to compute_parametric_var."""
     return compute_parametric_var(actual_volatility, portfolio_value, confidence_level, time_horizon_days)
 
+
+def compute_advisory_metrics(weight_dict: Dict[str, float]) -> Dict[str, Any]:
+    """
+    Computes advisory-oriented portfolio metrics:
+    - Equity exposure breakdown by asset class
+    - Concentration by title (HHI)
+    - Concentration by sector
+    - Concentration by geography
+    - Liquidity risk score (based on average daily volume)
+    """
+    # Asset class mapping from yfinance quoteType
+    _QUOTE_TYPE_MAP = {
+        "EQUITY": "Azionario", "ETF": "ETF", "MUTUALFUND": "Fondo",
+        "CRYPTOCURRENCY": "Crypto", "CURRENCY": "Forex",
+        "FUTURE": "Commodity", "INDEX": "Indice"
+    }
+
+    asset_class_weights: Dict[str, float] = {}
+    sector_weights: Dict[str, float] = {}
+    country_weights: Dict[str, float] = {}
+    liquidity_scores: Dict[str, str] = {}
+
+    for ticker, weight in weight_dict.items():
+        info = _get_ticker_info(ticker)
+
+        # Asset class
+        quote_type = info.get("quoteType", "")
+        asset_class = _QUOTE_TYPE_MAP.get(quote_type, "Altro")
+        asset_class_weights[asset_class] = asset_class_weights.get(asset_class, 0.0) + weight
+
+        # Sector
+        sector = info.get("sector", "N/D")
+        sector_weights[sector] = sector_weights.get(sector, 0.0) + weight
+
+        # Country
+        country = info.get("country", "N/D")
+        country_weights[country] = country_weights.get(country, 0.0) + weight
+
+        # Liquidity (average daily volume)
+        avg_vol = info.get("averageDailyVolume10Day") or info.get("averageVolume") or 0
+        if avg_vol > 5_000_000:
+            liquidity_scores[ticker] = "Alta"
+        elif avg_vol > 500_000:
+            liquidity_scores[ticker] = "Media"
+        else:
+            liquidity_scores[ticker] = "Bassa"
+
+    # HHI concentration by title (sum of squared weights, scale 0-10000)
+    hhi_title = sum((w * 100) ** 2 for w in weight_dict.values())
+
+    # Aggregate liquidity risk
+    low_liq_weight = sum(w for t, w in weight_dict.items() if liquidity_scores.get(t) == "Bassa")
+
+    return {
+        "asset_class_breakdown": asset_class_weights,
+        "sector_breakdown": sector_weights,
+        "country_breakdown": country_weights,
+        "hhi_title": round(hhi_title, 1),
+        "liquidity_per_ticker": liquidity_scores,
+        "low_liquidity_exposure": round(low_liq_weight * 100, 2)
+    }
+
+
 def run_quantitative_analysis(weight_dict: Dict[str, float], portfolio_value: float, 
                               start_date: str, end_date: str,
                               prices_df: pd.DataFrame = None,
@@ -342,16 +452,20 @@ def run_quantitative_analysis(weight_dict: Dict[str, float], portfolio_value: fl
     risk_metrics = compute_portfolio_volatility(log_returns, active_weights)
     ewma_metrics = compute_ewma_volatility(log_returns, active_weights)
     risk_metrics.update(ewma_metrics)
+    max_dd = compute_max_drawdown(prices_df, active_weights)
     var_parametric = compute_parametric_var(risk_metrics["actual_volatility"], portfolio_value)
     var_historical = compute_historical_var(log_returns, active_weights, portfolio_value)
     stress_results = compute_stress_tests(tickers, active_weights, base_currency)
+    advisory = compute_advisory_metrics(active_weights)
     
     # 5. Package all outputs, including alerts for dropped tickers
     return {
         "volatility_analysis": risk_metrics,
         "var_analysis": var_parametric,
         "var_historical": var_historical,
+        "max_drawdown": max_dd,
         "stress_tests": stress_results,
+        "advisory_metrics": advisory,
         "dropped_tickers": dropped_tickers
     }
 

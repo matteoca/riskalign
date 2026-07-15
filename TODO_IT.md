@@ -8,14 +8,14 @@ L'obiettivo di questo livello è calcolare le metriche dure del portafoglio.
 - [x] **Evoluzione del Value at Risk (VaR):** Passare dal VaR Parametrico al VaR Storico o a una simulazione Monte Carlo, per catturare meglio i "Cigni Neri" (fat tails).
 - [x] **Volatilità Dinamica (EWMA):** Implementare una media mobile esponenziale per dare maggior peso agli eventi di mercato recenti.  σ²_t = λ·σ²_{t-1} + (1-λ)·r²_t
 - [x] **Stress Testing Predefiniti:** Modulo per simulare scenari storici specifici sul portafoglio (es. "Come si sarebbe comportato durante il crollo Covid del 2020?").
-- [ ] **Backtesting del Drawdown:** Dato il portafoglio attuale, estrarre e mostrare il max drawdown storico reale per rendere tangibile il rischio vissuto in passato.
-- [ ] **Metriche Advisory (per Consulenti):**
-  - [ ] Maximum Drawdown storico (peggior calo peak-to-trough)
-  - [ ] Liquidity Risk (score basato su volume medio di scambio)
-  - [ ] Equity Exposure (% equity vs bond vs commodity vs altro)
-  - [ ] Concentrazione per titolo (Herfindahl-Hirschman Index)
-  - [ ] Concentrazione per settore (via yfinance `sector`)
-  - [ ] Concentrazione geografica (via yfinance `country`)
+- [x] **Backtesting del Drawdown:** Dato il portafoglio attuale, estrarre e mostrare il max drawdown storico reale per rendere tangibile il rischio vissuto in passato.
+- [x] **Metriche Advisory (per Consulenti):**
+  - [x] Maximum Drawdown storico (peggior calo peak-to-trough)
+  - [x] Liquidity Risk (score basato su volume medio di scambio)
+  - [x] Equity Exposure (% equity vs bond vs commodity vs altro)
+  - [x] Concentrazione per titolo (Herfindahl-Hirschman Index)
+  - [x] Concentrazione per settore (via yfinance `sector`)
+  - [x] Concentrazione geografica (via yfinance `country`)
 
 ## 🧠 Livello 2: Behaviour Engine (Profilazione e Comportamento)
 Andare oltre la compliance MiFID standard per mappare la vera tolleranza psicologica.
